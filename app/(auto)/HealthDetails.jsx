@@ -1,11 +1,5 @@
 import React, { useMemo, useState } from "react";
-import {
-  View,
-  Button,
-  StyleSheet,
-  Text,
-  ScrollView,
-} from "react-native";
+import { View, Button, StyleSheet, Text, ScrollView } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import RadioGroup from "react-native-radio-buttons-group";
@@ -97,6 +91,14 @@ const HealthDetailsScreen = () => {
     ...params,
   });
 
+  // פונקציה לחישוב כמות הקפאין המומלצת לבן אדם
+  const calculateCaffeineRange = (weight) => {
+    if (!weight) return { min: 0, max: 0 };
+    const min = weight * 3; // מינימום מומלץ
+    const max = weight * 6; // מקסימום מומלץ
+    return { min, max };
+  };
+
   const calculateAge = (year, month, day) => {
     if (!year || !month || !day) return null;
     const birthDate = new Date(year, month - 1, day);
@@ -129,9 +131,16 @@ const HealthDetailsScreen = () => {
   };
 
   const handleContinue = () => {
+    const caffeineRecommendation = calculateCaffeineRange(healthData.weight);
+
     router.push({
       pathname: "/CoffeeDetails",
-      params: { ...healthData, pregnant: healthData.gender === "Female" ? selectedId : null },
+      params: {
+        ...healthData,
+        pregnant: healthData.gender === "Female" ? selectedId : null,
+        caffeineRecommendationMin: caffeineRecommendation.min,
+        caffeineRecommendationMax: caffeineRecommendation.max,
+      },
     });
   };
 
