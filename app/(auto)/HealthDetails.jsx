@@ -1,12 +1,23 @@
 import React, { useMemo, useState } from "react";
-import { View, Button, StyleSheet, Text, ScrollView } from "react-native";
+import {
+  View,
+  Button,
+  StyleSheet,
+  Text,
+  ScrollView,
+  Alert,
+} from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import RadioGroup from "react-native-radio-buttons-group";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 const HealthDetailsScreen = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
+  const SERVER_URL = "http://localhost:5000/api/auth/register";
 
   const days = Array.from({ length: 31 }, (_, i) => ({
     label: `${i + 1}`,
@@ -57,6 +68,24 @@ const HealthDetailsScreen = () => {
     { label: "טבעוני", value: "Vegan" },
     { label: "כשר", value: "Kosher" },
   ];
+  const isFormValid = () => {
+    const requiredFields = [
+      "birthDay",
+      "birthMonth",
+      "birthYear",
+      "weight",
+      "height",
+      "gender",
+      "healthCondition",
+      "activityLevel",
+      "dietaryPreferences",
+    ];
+
+    // אם המגדר הוא נקבה, לבדוק גם אם יש תשובה על היריון
+    if (healthData.gender === "Female" && !selectedId) return false;
+
+    return requiredFields.every((field) => healthData[field]);
+  };
 
   const radioButtons = useMemo(
     () => [
@@ -130,18 +159,38 @@ const HealthDetailsScreen = () => {
     setHealthData(newHealthData);
   };
 
-  const handleContinue = () => {
-    const caffeineRecommendation = calculateCaffeineRange(healthData.weight);
+  const handleContinue = async () => {
+    if (!isFormValid()) {
+      Alert.alert("שגיאה", "אנא מלאי את כל השדות לפני המשך.");
+      return;
+    }
 
-    router.push({
-      pathname: "/CoffeeDetails",
-      params: {
-        ...healthData,
-        pregnant: healthData.gender === "Female" ? selectedId : null,
-        caffeineRecommendationMin: caffeineRecommendation.min,
-        caffeineRecommendationMax: caffeineRecommendation.max,
-      },
-    });
+    const caffeineRecommendation = calculateCaffeineRange(healthData.weight);
+    const birthDateString = `${healthData.birthYear}-${healthData.birthMonth
+      .toString()
+      .padStart(2, "0")}-${healthData.birthDay.toString().padStart(2, "0")}`;
+    const birthDate = new Date(birthDateString);
+
+    const finalData = {
+      ...healthData,
+      pregnant: healthData.gender === "Female" ? selectedId : null,
+      caffeineRecommendationMin: caffeineRecommendation.min,
+      caffeineRecommendationMax: caffeineRecommendation.max,
+      birthDate, // הוספה חשובה!
+    };
+    console.log("📩 שולחת נתונים לשרת:", finalData);
+
+    try {
+      const response = await axios.post(SERVER_URL, finalData);
+      console.log("✅ הרשמה הצליחה:", response.data);
+      Alert.alert("הצלחה", "נרשמת בהצלחה!");
+      await AsyncStorage.setItem("userId", response.data.user.userId);
+
+      router.push("/home-screen");
+    } catch (error) {
+      console.error("❌ שגיאה בשליחה:", error.response?.data || error.message);
+      Alert.alert("שגיאה", "לא הצלחנו לשמור את הנתונים, נסי שוב.");
+    }
   };
 
   return (
@@ -250,7 +299,12 @@ const HealthDetailsScreen = () => {
           }
         />
 
-        <Button title="המשך" onPress={handleContinue} color="#4CAF50" />
+        <Button
+          title="המשך"
+          onPress={handleContinue}
+          color="#4CAF50"
+          // disabled={!isFormValid()}
+        />
       </View>
     </ScrollView>
   );

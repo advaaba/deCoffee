@@ -1,12 +1,19 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-
+import { Ionicons } from "@expo/vector-icons";
 
 // const SERVER_URL = "http://192.168.137.223:5000/api/auth/login"; // כתובת השרת
-const SERVER_URL = 'http://localhost:5000/api/auth/login';
+const SERVER_URL = "http://localhost:5000/api/auth/login";
 // (79.177.158.86/32)
 
 const LoginScreen = () => {
@@ -14,6 +21,7 @@ const LoginScreen = () => {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -33,11 +41,11 @@ const LoginScreen = () => {
 
         // שמירת הטוקן ב- AsyncStorage
         await AsyncStorage.setItem("authToken", response.data.token);
-
         Alert.alert("✅ התחברת בהצלחה!");
+        await AsyncStorage.setItem("userId", response.data.user.userId);
+        console.log("🔎 response.data:", response.data);
 
         router.push("/home-screen");
-
       } else {
         setErrorMessage("❌ התחברות נכשלה, נסה שוב.");
       }
@@ -52,7 +60,10 @@ const LoginScreen = () => {
         setErrorMessage("❌ שגיאה בהתחברות");
       }
 
-      Alert.alert("❌ שגיאה", error.response?.data?.message || "שגיאה בלתי צפויה");
+      Alert.alert(
+        "❌ שגיאה",
+        error.response?.data?.message || "שגיאה בלתי צפויה"
+      );
     }
   };
 
@@ -69,13 +80,22 @@ const LoginScreen = () => {
         onChangeText={setEmail}
         autoCapitalize="none"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="סיסמה"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          placeholder="סיסמה"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+        />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Ionicons
+            name={showPassword ? "eye-off" : "eye"}
+            size={24}
+            color="gray"
+          />
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>כניסה</Text>
@@ -123,6 +143,23 @@ const styles = StyleSheet.create({
     color: "red",
     marginBottom: 10,
   },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "80%",
+    height: 50,
+    borderColor: "gray",
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+  },
+  
+  passwordInput: {
+    flex: 1,
+    fontSize: 16,
+  }
+  
 });
 
 export default LoginScreen;
