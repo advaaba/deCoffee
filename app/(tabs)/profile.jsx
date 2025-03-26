@@ -62,7 +62,6 @@ export default function Profile() {
       <Text style={styles.text}>רמת פעילות: {user.activityLevel}</Text>
       <Text style={styles.text}>העדפות תזונה: {user.dietaryPreferences}</Text>
       <View style={{ marginTop: 20 }}>
-        <Button title="התנתקות" onPress={handleLogout} color="#d9534f" />
       </View>
     </ScrollView>
   );
