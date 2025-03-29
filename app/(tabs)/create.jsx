@@ -91,20 +91,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     fontSize: 16,
-    color: "white" 
+    // color: "white" 
 
   },
   slider: {
     width: "100%",
     height: 40,
-    color: "white" 
+    // color: "white" 
 
   },
   button: {
     marginTop: 24,
     borderRadius: 12,
     overflow: "hidden",
-    color: "white" 
+    // color: "white" 
 
   },
 });
