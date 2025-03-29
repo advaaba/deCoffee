@@ -29,6 +29,12 @@ export default function Layout() {
           title: "Explore",
         }}
       />
+      <Tabs.Screen
+    name="CoffeeDetails"
+        options={{
+       title: "Coffee"
+        }}
+      />
     </Tabs>
   );
 }

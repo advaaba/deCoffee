@@ -66,7 +66,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, alignItems: "center", backgroundColor: "#1c1c1c", minHeight: "100%" },
+  container: { padding: 20, alignItems: "center", backgroundColor: "#fff", minHeight: "100%" },
   title: { fontSize: 28, fontWeight: "bold", marginBottom: 10, color: "white" },
   subTitle: { fontSize: 20, fontWeight: "600", color: "#a3d9a5", marginBottom: 5 },
   text: { color: "white", textAlign: "center", marginBottom: 10 },

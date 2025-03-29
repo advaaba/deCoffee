@@ -18,7 +18,7 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: "#1c1c1c",
+    backgroundColor: "#fff",
     minHeight: "100%"
   },
   title: {

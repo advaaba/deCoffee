@@ -7,6 +7,7 @@ import Animated, {
     useSharedValue,
     withSpring,
 } from "react-native-reanimated";
+import CoffeeDetails from "../app/(tabs)/CoffeeDetails";
 
 
 // אובייקט האייקונים
@@ -15,6 +16,7 @@ export const icons = {
     explore: (props) => <Feather name="compass" size={26} {...props} />,
     create: (props) => <AntDesign name="pluscircleo" size={26} {...props} />,
     profile: (props) => <AntDesign name="user" size={26} {...props} />,
+    CoffeeDetails: (props) => <Feather name="coffee" size={26} {...props} />,
 };
 
 const TabBarButton = ({ isFocused, label, routeName, color, onPress }) => {
