@@ -68,7 +68,7 @@ export default function Create() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    // backgroundColor: "#1c1c1c",
     padding: 20,
   },
   title: {
@@ -76,13 +76,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 20,
     textAlign: "center",
-    color: "white" 
+    // color: "black" 
   },
   label: {
     fontSize: 16,
     marginTop: 12,
     marginBottom: 4,
-    color: "white" 
+    // color: "white" 
 
   },
   input: {

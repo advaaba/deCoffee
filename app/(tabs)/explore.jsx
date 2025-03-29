@@ -18,18 +18,18 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: "#fff",
+    // backgroundColor: "#fff",
     minHeight: "100%"
   },
   title: {
     fontSize: 26,
     fontWeight: "bold",
     marginBottom: 15,
-    color: "#ffc8dd",
+    // color: "#ffc8dd",
     textAlign: "center"
   },
   text: {
-    color: "white",
+    // color: "white",
     marginBottom: 10,
     fontSize: 16
   }

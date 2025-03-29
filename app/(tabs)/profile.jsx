@@ -1,6 +1,14 @@
 // ✅ קובץ Profile.jsx
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Button, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  Button,
+  Alert,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useRouter } from "expo-router";
@@ -18,7 +26,9 @@ export default function Profile() {
           Alert.alert("שגיאה", "לא נמצאו נתוני משתמש");
           return;
         }
-        const response = await axios.get(`http://localhost:5000/api/auth/get-user/${userId}`);
+        const response = await axios.get(
+          `http://localhost:5000/api/auth/get-user/${userId}`
+        );
         if (response.data.success) {
           setUser(response.data.user);
         } else {
@@ -52,7 +62,9 @@ export default function Profile() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>הפרופיל שלך:</Text>
-      <Text style={styles.text}>שם מלא: {user.firstName} {user.lastName}</Text>
+      <Text style={styles.text}>
+        שם מלא: {user.firstName} {user.lastName}
+      </Text>
       <Text style={styles.text}>דוא"ל: {user.email}</Text>
       <Text style={styles.text}>טלפון: {user.phoneNumber}</Text>
       <Text style={styles.text}>גיל: {user.age}</Text>
@@ -61,14 +73,17 @@ export default function Profile() {
       <Text style={styles.text}>מצב בריאותי: {user.healthCondition}</Text>
       <Text style={styles.text}>רמת פעילות: {user.activityLevel}</Text>
       <Text style={styles.text}>העדפות תזונה: {user.dietaryPreferences}</Text>
-      <View style={{ marginTop: 20 }}>
-      </View>
+      <View style={{ marginTop: 20 }}></View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: "#1c1c1c", minHeight: "100%" },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 15, color: "white" },
-  text: { color: "white", marginBottom: 5 }
+  container: {
+    padding: 20,
+    // backgroundColor: "#1c1c1c",
+    minHeight: "100%",
+  },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 15, color: "black" },
+  text: { color: "black", marginBottom: 5 },
 });
