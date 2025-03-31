@@ -12,6 +12,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useRouter } from "expo-router";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -19,6 +20,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const router = useRouter();
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -50,6 +52,16 @@ export default function Profile() {
 
   const handleFieldChange = (field, value) => {
     setEditedUser((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setEditedUser((prev) => ({
+        ...prev,
+        birthDate: selectedDate.toISOString(),
+      }));
+    }
   };
 
   const formatDate = (dateStr) => {
@@ -123,12 +135,34 @@ export default function Profile() {
           editMode={editMode}
           onChange={handleFieldChange}
         />
-        <InfoRow
-          label="תאריך יום הולדת"
-          value={formatDate(editedUser.birthDate)}
-          field="birthDate"
-          editMode={false} // לא נערוך תאריך בלייב – רק תצוגה
-        />
+        <View style={styles.row}>
+          <Text style={styles.label}>תאריך יום הולדת:</Text>
+          {editMode ? (
+            <>
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(true)}
+                style={styles.input}
+              >
+                <Text>{formatDate(editedUser.birthDate) || "בחר תאריך"}</Text>
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={
+                    editedUser.birthDate
+                      ? new Date(editedUser.birthDate)
+                      : new Date()
+                  }
+                  mode="date"
+                  display="default"
+                  onChange={handleDateChange}
+                />
+              )}
+            </>
+          ) : (
+            <Text style={styles.value}>{formatDate(editedUser.birthDate)}</Text>
+          )}
+        </View>
+
         <InfoRow
           label="משקל"
           value={editedUser.weight?.toString()}

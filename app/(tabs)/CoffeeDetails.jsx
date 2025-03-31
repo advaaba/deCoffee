@@ -26,7 +26,6 @@ const CoffeeDetails = () => {
     { label: "הפוך", value: "Cappuccino" },
     { label: "אמריקנו", value: "Americano" },
     { label: "נס קפה", value: "Instant Coffee" },
-    { label: "קורטדו", value: "Cortado" },
   ];
 
   const foodType = [
@@ -126,7 +125,7 @@ const CoffeeDetails = () => {
           onChange={(item) => handleInputChange("coffeeType", item)}
         />
 
-        <MultiSelect
+        {/* <MultiSelect
           style={styles.dropdown}
           data={foodType}
           labelField="label"
@@ -134,7 +133,7 @@ const CoffeeDetails = () => {
           placeholder="בחר מאכלים עם קפאין"
           value={coffeeData.foodType}
           onChange={(item) => handleInputChange("foodType", item)}
-        />
+        /> */}
 
         <Dropdown
           style={styles.dropdown}
