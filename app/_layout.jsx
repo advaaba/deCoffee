@@ -4,7 +4,7 @@ import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // 🔥 נוסיף אחסון מקומי
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -19,21 +19,19 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
-  // ✅ בדיקת התחברות כשהאפליקציה נטענת
   useEffect(() => {
     const checkAuth = async () => {
       const token = await AsyncStorage.getItem("userToken");
-      setIsAuthenticated(!!token); // אם יש טוקן → המשתמש מחובר
+      setIsAuthenticated(!!token);
 
       if (!token) {
-        router.replace("/open-screen"); // אם אין טוקן, שולחים ל-`open-screen`
+        router.replace("/open-screen");
       }
     };
 
     checkAuth();
   }, []);
 
-  // ✅ מסתירים את מסך הפתיחה כשהפונטים נטענים
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
@@ -46,14 +44,16 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        {/* 🔥 אם המשתמש מחובר, מציגים את ה-Tabs. אם לא – הוא נשלח ל-open-screen */}
+      <Stack
+        screenOptions={{
+          headerShown: false, // 👈 זה החלק שהוספת
+        }}
+      >
         {isAuthenticated ? (
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" />
         ) : (
-          <Stack.Screen name="open-screen" options={{ headerShown: false }} />
+          <Stack.Screen name="open-screen" />
         )}
-
         <Stack.Screen name="+not-found" />
       </Stack>
       {/* <StatusBar style="auto" /> */}

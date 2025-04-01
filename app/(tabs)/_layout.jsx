@@ -6,21 +6,21 @@ export default function Layout() {
   return (
     <Tabs tabBar={(props) => <TabBar {...props} />}>
       <Tabs.Screen
-        name="home-screen"
-        options={{
-          title: "Home",
-        }}
-      />
-      <Tabs.Screen
         name="create"
         options={{
           title: "Create",
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="coffee"
         options={{
-          title: "Profile",
+          title: "Coffee",
+        }}
+      />
+      <Tabs.Screen
+        name="home-screen"
+        options={{
+          title: "Home",
         }}
       />
       <Tabs.Screen
@@ -29,10 +29,11 @@ export default function Layout() {
           title: "Explore",
         }}
       />
+
       <Tabs.Screen
-    name="CoffeeDetails"
+        name="profile"
         options={{
-       title: "Coffee"
+          title: "Profile",
         }}
       />
     </Tabs>

@@ -8,7 +8,6 @@ export default function AuthLayout() {
       <Stack.Screen name="login" options={{ title: "התחברות" }} />
       <Stack.Screen name="PersonalDetails" options={{ title: "הרשמה" }} />
       <Stack.Screen name="HealthDetails" options={{ title: "המשך הרשמה" }} />
-      <Stack.Screen name="CoffeeDetails" options={{ title: "פרטי צריכת קפה" }} />
     </Stack>
   );
 }

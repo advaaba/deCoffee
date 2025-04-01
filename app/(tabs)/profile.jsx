@@ -12,7 +12,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useRouter } from "expo-router";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -20,7 +20,10 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const router = useRouter();
-  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const [day, setDay] = useState(null);
+  const [month, setMonth] = useState(null);
+  const [year, setYear] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -34,8 +37,13 @@ export default function Profile() {
           `http://localhost:5000/api/auth/get-user/${userId}`
         );
         if (response.data.success) {
+          const birthDate = new Date(response.data.user.birthDate);
+          setDay(birthDate.getDate());
+          setMonth(birthDate.getMonth() + 1);
+          setYear(birthDate.getFullYear());
+
           setUser(response.data.user);
-          setEditedUser(response.data.user); // למצב עריכה
+          setEditedUser(response.data.user);
         } else {
           Alert.alert("שגיאה", "לא ניתן לטעון את פרטי המשתמש");
         }
@@ -54,12 +62,20 @@ export default function Profile() {
     setEditedUser((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
+  const updateBirthDate = (newDay = day, newMonth = month, newYear = year) => {
+    if (newDay && newMonth && newYear) {
+      const newDate = new Date(newYear, newMonth - 1, newDay);
+      const today = new Date();
+      let calculatedAge = today.getFullYear() - newDate.getFullYear();
+      const m = today.getMonth() - newDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < newDate.getDate())) {
+        calculatedAge--;
+      }
+
       setEditedUser((prev) => ({
         ...prev,
-        birthDate: selectedDate.toISOString(),
+        birthDate: newDate.toISOString(),
+        age: calculatedAge,
       }));
     }
   };
@@ -132,32 +148,53 @@ export default function Profile() {
           label="גיל"
           value={editedUser.age?.toString()}
           field="age"
-          editMode={editMode}
+          editMode={false} // גיל לא ניתן לעריכה ידנית
           onChange={handleFieldChange}
         />
+
+        {/* תאריך לידה בדרופ דאון */}
         <View style={styles.row}>
           <Text style={styles.label}>תאריך יום הולדת:</Text>
           {editMode ? (
-            <>
-              <TouchableOpacity
-                onPress={() => setShowDatePicker(true)}
-                style={styles.input}
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <Picker
+                selectedValue={day}
+                style={styles.picker}
+                onValueChange={(value) => {
+                  setDay(value);
+                  updateBirthDate(value, month, year);
+                }}
               >
-                <Text>{formatDate(editedUser.birthDate) || "בחר תאריך"}</Text>
-              </TouchableOpacity>
-              {showDatePicker && (
-                <DateTimePicker
-                  value={
-                    editedUser.birthDate
-                      ? new Date(editedUser.birthDate)
-                      : new Date()
-                  }
-                  mode="date"
-                  display="default"
-                  onChange={handleDateChange}
-                />
-              )}
-            </>
+                {[...Array(31)].map((_, i) => (
+                  <Picker.Item key={i} label={`${i + 1}`} value={i + 1} />
+                ))}
+              </Picker>
+              <Picker
+                selectedValue={month}
+                style={styles.picker}
+                onValueChange={(value) => {
+                  setMonth(value);
+                  updateBirthDate(day, value, year);
+                }}
+              >
+                {[...Array(12)].map((_, i) => (
+                  <Picker.Item key={i} label={`${i + 1}`} value={i + 1} />
+                ))}
+              </Picker>
+              <Picker
+                selectedValue={year}
+                style={styles.picker}
+                onValueChange={(value) => {
+                  setYear(value);
+                  updateBirthDate(day, month, value);
+                }}
+              >
+                {[...Array(100)].map((_, i) => {
+                  const y = new Date().getFullYear() - i;
+                  return <Picker.Item key={i} label={`${y}`} value={y} />;
+                })}
+              </Picker>
+            </View>
           ) : (
             <Text style={styles.value}>{formatDate(editedUser.birthDate)}</Text>
           )}
@@ -181,33 +218,57 @@ export default function Profile() {
 
       <TouchableOpacity style={styles.updateButton} onPress={handleEditToggle}>
         <Text style={styles.updateText}>
-          {editMode ? "💾 שמור שינויים" : "✏️ עדכון פרטים"}
+          {editMode ? " שמור שינויים" : " עדכון פרטים"}
         </Text>
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
-const InfoRow = ({ label, value, field, editMode, onChange }) => (
-  <View style={styles.row}>
-    <Text style={styles.label}>{label}:</Text>
-    {editMode ? (
-      <TextInput
-        style={styles.input}
-        value={value}
-        onChangeText={(text) => onChange(field, text)}
-        placeholder={`הכנס ${label}`}
-      />
-    ) : (
-      <Text style={styles.value}>{value}</Text>
-    )}
-  </View>
-);
+// קומפוננטה לשורת מידע (כולל תמיכה ב-Picker עבור height ו-weight)
+const InfoRow = ({ label, value, field, editMode, onChange }) => {
+  const isPickerField = field === "weight" || field === "height";
+
+  return (
+    <View style={styles.row}>
+      <Text style={styles.label}>{label}:</Text>
+      {editMode ? (
+        isPickerField ? (
+          <Picker
+            selectedValue={parseInt(value)}
+            style={styles.picker}
+            onValueChange={(val) => onChange(field, val)}
+          >
+            {field === "weight"
+              ? [...Array(121)].map((_, i) => {
+                  const val = 30 + i;
+                  return <Picker.Item key={val} label={`${val} ק"ג`} value={val} />;
+                })
+              : [...Array(121)].map((_, i) => {
+                  const val = 100 + i;
+                  return <Picker.Item key={val} label={`${val} ס"מ`} value={val} />;
+                })}
+          </Picker>
+        ) : (
+          <TextInput
+            style={styles.input}
+            value={value}
+            onChangeText={(text) => onChange(field, text)}
+            placeholder={`הכנס ${label}`}
+            keyboardType="default"
+          />
+        )
+      ) : (
+        <Text style={styles.value}>{value}</Text>
+      )}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     padding: 24,
-    backgroundColor: "#f8fafc",
+    // backgroundColor: "#f8fafc",
     alignItems: "center",
     minHeight: "100%",
   },
@@ -250,6 +311,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     color: "#0f172a",
+  },
+  picker: {
+    flex: 1,
+    height: 44,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#fff",
   },
   updateButton: {
     backgroundColor: "#0ea5e9",

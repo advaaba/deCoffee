@@ -1,6 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, SafeAreaView } from "react-native";
-import Slider from "@react-native-community/slider";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  SafeAreaView,
+} from "react-native";
+import { Slider } from "react-native-elements";
 
 export default function Create() {
   const [amount, setAmount] = useState("");
@@ -43,11 +50,32 @@ export default function Create() {
       />
 
       <Text style={styles.label}>דרגי עייפות</Text>
-      <Slider style={styles.slider} minimumValue={0} maximumValue={10} step={1} value={tiredness} onValueChange={setTiredness} />
+
+      <Slider
+        value={mood}
+        onValueChange={setMood}
+        maximumValue={10}
+        minimumValue={0}
+        step={1}
+      />
       <Text style={styles.label}>דרגי ריכוז</Text>
-      <Slider style={styles.slider} minimumValue={0} maximumValue={10} step={1} value={focus} onValueChange={setFocus} />
+
+      <Slider
+        value={mood}
+        onValueChange={setMood}
+        maximumValue={10}
+        minimumValue={0}
+        step={1}
+      />
       <Text style={styles.label}>דרגי מצב רוח</Text>
-      <Slider style={styles.slider} minimumValue={0} maximumValue={10} step={1} value={mood} onValueChange={setMood} />
+
+      <Slider
+        value={mood}
+        onValueChange={setMood}
+        maximumValue={10}
+        minimumValue={0}
+        step={1}
+      />
 
       <Text style={styles.label}>למה שתית עכשיו?</Text>
       <TextInput
@@ -76,14 +104,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 20,
     textAlign: "center",
-    // color: "black" 
+    // color: "black"
   },
   label: {
     fontSize: 16,
     marginTop: 12,
     marginBottom: 4,
-    // color: "white" 
-
+    // color: "white"
   },
   input: {
     borderWidth: 1,
@@ -91,20 +118,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     fontSize: 16,
-    // color: "white" 
-
+    // color: "white"
   },
   slider: {
     width: "100%",
     height: 40,
-    // color: "white" 
-
+    // color: "white"
   },
   button: {
     marginTop: 24,
     borderRadius: 12,
     overflow: "hidden",
-    // color: "white" 
-
+    // color: "white"
   },
 });
