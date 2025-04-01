@@ -7,7 +7,7 @@ import {
   StyleSheet,
   SafeAreaView,
 } from "react-native";
-import { Slider } from "react-native-elements";
+// import { Slider } from "react-native-elements";
 
 export default function Create() {
   const [amount, setAmount] = useState("");
@@ -50,32 +50,32 @@ export default function Create() {
       />
 
       <Text style={styles.label}>דרגי עייפות</Text>
-
+{/* 
       <Slider
         value={mood}
         onValueChange={setMood}
         maximumValue={10}
         minimumValue={0}
         step={1}
-      />
+      /> */}
       <Text style={styles.label}>דרגי ריכוז</Text>
 
-      <Slider
+      {/* <Slider
         value={mood}
         onValueChange={setMood}
         maximumValue={10}
         minimumValue={0}
         step={1}
-      />
+      /> */}
       <Text style={styles.label}>דרגי מצב רוח</Text>
 
-      <Slider
+      {/* <Slider
         value={mood}
         onValueChange={setMood}
         maximumValue={10}
         minimumValue={0}
         step={1}
-      />
+      /> */}
 
       <Text style={styles.label}>למה שתית עכשיו?</Text>
       <TextInput

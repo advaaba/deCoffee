@@ -125,16 +125,6 @@ const CoffeeDetails = () => {
           onChange={(item) => handleInputChange("coffeeType", item)}
         />
 
-        {/* <MultiSelect
-          style={styles.dropdown}
-          data={foodType}
-          labelField="label"
-          valueField="value"
-          placeholder="בחר מאכלים עם קפאין"
-          value={coffeeData.foodType}
-          onChange={(item) => handleInputChange("foodType", item)}
-        /> */}
-
         <Dropdown
           style={styles.dropdown}
           data={servingSizes}

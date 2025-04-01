@@ -11,10 +11,11 @@ export default function Layout() {
           title: "Create",
         }}
       />
+
       <Tabs.Screen
-        name="coffee"
+        name="explore"
         options={{
-          title: "Coffee",
+          title: "Explore",
         }}
       />
       <Tabs.Screen
@@ -24,16 +25,15 @@ export default function Layout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Explore",
-        }}
-      />
-
-      <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
+        }}
+      />
+      <Tabs.Screen
+        name="coffees"
+        options={{
+          title: "Coffee",
         }}
       />
     </Tabs>

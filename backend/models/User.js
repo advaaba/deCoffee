@@ -12,11 +12,13 @@ const userSchema = new mongoose.Schema({
   height: { type: Number, required: true },
   gender: { type: String, required: true },
   phoneNumber: { type: String, required: true },
-  goal: { type: String },
   healthCondition: { type: String },
   activityLevel: { type: String },
   dietaryPreferences: { type: String },
-  coffeeConsumption: { type: String }
+  coffeeConsumption: { type: String },
+  pregnant: { type: String },
+  caffeineRecommendationMin: { type: Number },
+  caffeineRecommendationMax: { type: Number },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
