@@ -150,7 +150,7 @@ const CoffeeDetails = () => {
         `http://localhost:5000/api/auth/update-coffee-consumption/${userId}`,
         finalData.coffeeConsumption
       );
-      console.log("📦 נתונים שנשלחים לשרת:", finalData);
+      console.log("📦 נתונים שנשלחים לשרת: ", finalData);
       console.log("✅ עדכון הצליח:", response.data);
   
       setModalMessage("✅ הנתונים נשמרו בהצלחה!");
