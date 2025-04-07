@@ -31,7 +31,7 @@ export default function Layout() {
         }}
       />
       <Tabs.Screen
-        name="coffees"
+        name="coffee"
         options={{
           title: "Coffee",
         }}

@@ -33,32 +33,12 @@ const registerUser = async (req, res) => {
 
     await newUser.save();
 
-    const userToReturn = {
-      userId: newUser.userId,
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-      email: newUser.email,
-      birthDate: newUser.birthDate,
-      age: newUser.age,
-      weight: newUser.weight,
-      height: newUser.height,
-      gender: newUser.gender,
-      phoneNumber: newUser.phoneNumber,
-      healthCondition: newUser.healthCondition,
-      activityLevel: newUser.activityLevel,
-      dietaryPreferences: newUser.dietaryPreferences,
-      coffeeConsumption: newUser.coffeeConsumption,
-      caffeineRecommendationMin: newUser.caffeineRecommendationMin,
-      caffeineRecommendationMax: newUser.caffeineRecommendationMax,
-      pregnant: newUser.pregnant
-    };
-
     res.status(201).json({
       success: true,
       message: '✅ המשתמש נרשם בהצלחה!',
-      user: userToReturn
+      user: newUser
     });
-  }catch (err) {
+  } catch (err) {
     console.error('❌ שגיאה בהרשמה:', err.message, err);
     res.status(500).json({
       success: false,
@@ -66,7 +46,6 @@ const registerUser = async (req, res) => {
       error: err.message,
     });
   }
-  
 };
 
 const loginUser = async (req, res) => {
@@ -84,31 +63,11 @@ const loginUser = async (req, res) => {
 
     const token = jwt.sign({ userId: user._id, email: user.email }, SECRET_KEY, { expiresIn: "1h" });
 
-    const userToReturn = {
-      userId: user.userId,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      birthDate: user.birthDate,
-      age: user.age,
-      weight: user.weight,
-      height: user.height,
-      gender: user.gender,
-      phoneNumber: user.phoneNumber,
-      healthCondition: user.healthCondition,
-      activityLevel: user.activityLevel,
-      dietaryPreferences: user.dietaryPreferences,
-      coffeeConsumption: user.coffeeConsumption,
-      caffeineRecommendationMin: user.caffeineRecommendationMin,
-      caffeineRecommendationMax: user.caffeineRecommendationMax,
-      pregnant: user.pregnant
-    };
-
     res.json({
       success: true,
       message: "✅ התחברת בהצלחה!",
       token,
-      user: userToReturn
+      user
     });
   } catch (error) {
     console.error("❌ שגיאה בהתחברות:", error);
@@ -116,4 +75,37 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser };
+const updateCoffeeConsumption = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const updateData = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: '❌ חסר מזהה משתמש' });
+    }
+
+    const user = await User.findOne({ userId });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "❌ המשתמש לא נמצא" });
+    }
+
+    user.coffeeConsumption = {
+      ...user.coffeeConsumption,
+      ...updateData,
+    };
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "✅ פרטי הקפה עודכנו בהצלחה",
+      user,
+    });
+  } catch (error) {
+    console.error("❌ שגיאה בעדכון צריכת קפה:", error);
+    res.status(500).json({ success: false, message: "❌ שגיאה בעדכון", error: error.message });
+  }
+};
+
+module.exports = { registerUser, loginUser, updateCoffeeConsumption };

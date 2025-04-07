@@ -1,13 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser } = require('../controllers/authController');
+const {
+  registerUser,
+  loginUser,
+  updateCoffeeConsumption
+} = require('../controllers/authController');
 const User = require('../models/User');
 
-// מסלולים קיימים:
+// רישום והתחברות
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 
-// ✅ שליפת פרטי משתמש לפי userId
+// שליפת פרטי משתמש
 router.get('/get-user/:userId', async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.params.userId });
@@ -21,6 +25,7 @@ router.get('/get-user/:userId', async (req, res) => {
   }
 });
 
+// 🔄 עדכון כללי של פרטי משתמש
 router.put('/update-user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -42,6 +47,7 @@ router.put('/update-user/:userId', async (req, res) => {
   }
 });
 
-
+// ✅ מסלול ייעודי לעדכון נתוני צריכת קפה בלבד
+router.put('/update-coffee-consumption/:userId', updateCoffeeConsumption);
 
 module.exports = router;

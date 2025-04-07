@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const config = require('./config');
 const authRoutes = require('./routes/authRoutes');
+const drinkRoutes = require("./routes/drinkRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,6 +15,7 @@ app.use(express.json());
 
 // שימוש בנתיבים
 app.use('/api/auth', authRoutes);
+app.use("/api/drinks", drinkRoutes);
 
 // בדיקת חיבור לשרת
 app.get('/', (req, res) => {

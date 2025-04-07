@@ -15,10 +15,29 @@ const userSchema = new mongoose.Schema({
   healthCondition: { type: String },
   activityLevel: { type: String },
   dietaryPreferences: { type: String },
-  coffeeConsumption: { type: String },
   pregnant: { type: String },
   caffeineRecommendationMin: { type: Number },
   caffeineRecommendationMax: { type: Number },
+
+  coffeeConsumption: {
+    coffeeType: [String],
+    servingSize: { type: String, enum: ["Small", "Medium", "Large"] },
+    cupsPerDay: Number,
+    consumptionTime: [String],
+    isWorking: { type: String, enum: ["yes", "no"] },
+    workStartHour: Number,
+    workEndHour: Number,
+    sleepFromHour: Number,
+    sleepToHour: Number,
+    sleepDuration: Number,
+    workDuration: Number,
+    effects: { type: String, enum: ["physically", "mentally", "both"] },
+    isTryingToReduce: { type: String, enum: ["yes", "no"] },
+    reductionExplanation: String,
+    isMotivation: Boolean,
+    selfDescription: String
+  }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
