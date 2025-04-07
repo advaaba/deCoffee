@@ -108,4 +108,5 @@ const updateCoffeeConsumption = async (req, res) => {
   }
 };
 
+
 module.exports = { registerUser, loginUser, updateCoffeeConsumption };
