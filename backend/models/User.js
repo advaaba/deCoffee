@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema({
     sleepToHour: Number,
     sleepDurationAverage: Number,
     workDurationAverage: Number,
-    effects: { type: String, enum: ["physically", "mentally", "both"] },
+    effects: { type: String, enum: ["physically", "mentally", "both", "none"] },
     isTryingToReduce: { type: String, enum: ["yes", "no"] },
     reductionExplanation: String,
     isMotivation: Boolean,

@@ -11,6 +11,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import axios from "axios";
+import Toast from "react-native-toast-message";
 
 export default function HomeScreen() {
   const [user, setUser] = useState(null);
@@ -49,6 +50,11 @@ export default function HomeScreen() {
       }
     };
     loadUser();
+    Toast.show({
+      type: "success",
+      text1: "ברוכה הבאה אדוה 🌟",
+      text2: "כיף לראות אותך שוב!",
+    });
   }, []);
 
   const handleLogout = async () => {

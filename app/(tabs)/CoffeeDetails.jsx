@@ -160,10 +160,17 @@ const CoffeeDetails = () => {
     { label: "במידה רבה מאוד", value: 5 },
   ];
 
-  const hoursOptions = Array.from({ length: 24 }, (_, i) => ({
-    label: `${i.toString().padStart(2, "0")}:00`,
-    value: i,
-  }));
+  const hoursOptions = Array.from({ length: 24 * 2 }, (_, i) => {
+    const hour = Math.floor(i / 2);
+    const minutes = (i % 2) * 30;
+    return {
+      label: `${hour.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`,
+      value: hour + minutes / 60,
+    };
+  });
+  
 
   const yesNoOptions = useMemo(
     () => [
@@ -330,15 +337,15 @@ const CoffeeDetails = () => {
       console.log("✅ עדכון הצליח:", response.data);
 
       // ✅ הודעת הצלחה ואז ניתוב חזרה למסך הקודם
-      Alert.alert("הצלחה", "✅ הנתונים נשמרו בהצלחה!", [
-        {
-          text: "אוקיי",
-          onPress: () => {
+      // Alert.alert("הצלחה", "✅ הנתונים נשמרו בהצלחה!", [
+      //   {
+      //     text: "אוקיי",
+      //     onPress: () => {
             resetForm();
             router.push("/coffee");
-          },
-        },
-      ]);
+      //     },
+      //   },
+      // ]);
     } catch (err) {
       console.error("❌ שגיאה בעדכון המשתמש:", err);
     }
@@ -643,7 +650,8 @@ const CoffeeDetails = () => {
               <View key={name} style={{ marginVertical: 8 }}>
                 <Text style={{ marginBottom: 4 }}>
                   סוג:{" "}
-                  {coffeeTypesFromDb.find((c) => c.value === name)?.name || name}
+                  {coffeeTypesFromDb.find((c) => c.value === name)?.name ||
+                    name}
                 </Text>
                 <Dropdown
                   data={servingSizes}
