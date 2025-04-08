@@ -6,6 +6,7 @@ import {
   Text,
   ScrollView,
   Alert,
+  TextInput
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -13,11 +14,47 @@ import RadioGroup from "react-native-radio-buttons-group";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-
 const HealthDetailsScreen = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
   const SERVER_URL = "http://localhost:5000/api/auth/register";
+  const [errors, setErrors] = useState({});
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (
+      !healthData.birthDay ||
+      !healthData.birthMonth ||
+      !healthData.birthYear
+    ) {
+      newErrors.birthDate = "יש למלא תאריך לידה מלא";
+    }
+    if (!healthData.weight) newErrors.weight = "יש להזין משקל";
+    if (!healthData.height) newErrors.height = "יש להזין גובה";
+    if (!healthData.gender) newErrors.gender = "יש לבחור מין";
+    if (healthData.gender === "Female" && !selectedId)
+      newErrors.pregnant = "יש לציין אם את בהיריון";
+    if (!healthData.healthCondition)
+      newErrors.healthCondition = "יש לבחור מצב בריאותי";
+    if (
+      healthData.healthCondition === "otherHealthConditions" &&
+      !customHealthDescription.trim()
+    )
+      newErrors.customHealthDescription = "יש למלא תיאור בריאותי";
+    if (!healthData.activityLevel)
+      newErrors.activityLevel = "יש לבחור רמת פעילות";
+    if (!healthData.dietaryPreferences)
+      newErrors.dietaryPreferences = "יש לבחור העדפה תזונתית";
+    if (
+      healthData.dietaryPreferences === "otherDietaryPreferences" &&
+      !customDietaryPreference.trim()
+    )
+      newErrors.customDietaryPreference = "יש למלא תיאור תזונתי";
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
 
   const days = Array.from({ length: 31 }, (_, i) => ({
     label: `${i + 1}`,
@@ -51,8 +88,9 @@ const HealthDetailsScreen = () => {
     { label: "בריא בדרך כלל", value: "Healthy" },
     { label: "סוכרת", value: "Diabetes" },
     { label: "לחץ דם גבוה", value: "High Blood Pressure" },
+    { label: "רגישות ללקטוז", value: "Lactose sensitivity" },
     { label: "אלרגיות", value: "Allergies" },
-    { label: "אחר", value: "Other" },
+    { label: "אחר", value: "otherHealthConditions" },
   ];
 
   const activityLevels = [
@@ -67,6 +105,7 @@ const HealthDetailsScreen = () => {
     { label: "צמחוני", value: "Vegetarian" },
     { label: "טבעוני", value: "Vegan" },
     { label: "כשר", value: "Kosher" },
+    { label: "אחר", value: "otherDietaryPreferences" },
   ];
   const isFormValid = () => {
     const requiredFields = [
@@ -81,8 +120,24 @@ const HealthDetailsScreen = () => {
       "dietaryPreferences",
     ];
 
-    // אם המגדר הוא נקבה, לבדוק גם אם יש תשובה על היריון
+    // אם המגדר הוא נקבה, לבדוק אם נבחרה תשובה על היריון
     if (healthData.gender === "Female" && !selectedId) return false;
+
+    // אם נבחר "אחר" במצב בריאותי – חייב למלא תיאור
+    if (
+      healthData.healthCondition === "otherHealthConditions" &&
+      !customHealthDescription.trim()
+    ) {
+      return false;
+    }
+
+    // אם נבחר "אחר" בהעדפה תזונתית – חייב למלא תיאור
+    if (
+      healthData.dietaryPreferences === "otherDietaryPreferences" &&
+      !customDietaryPreference.trim()
+    ) {
+      return false;
+    }
 
     return requiredFields.every((field) => healthData[field]);
   };
@@ -104,6 +159,8 @@ const HealthDetailsScreen = () => {
   );
 
   const [selectedId, setSelectedId] = useState();
+  const [customHealthDescription, setCustomHealthDescription] = useState("");
+  const [customDietaryPreference, setCustomDietaryPreference] = useState("");
 
   const [healthData, setHealthData] = useState({
     birthDay: null,
@@ -122,11 +179,14 @@ const HealthDetailsScreen = () => {
 
   // פונקציה לחישוב כמות הקפאין המומלצת לבן אדם
   const calculateCaffeineRange = (weight) => {
-    if (!weight) return { min: 0, max: 0 };
-    const min = weight * 3; // מינימום מומלץ
-    const max = weight * 6; // מקסימום מומלץ
-    return { min, max };
+    if (!weight) return { min: 0, max: 0, averageCaffeineRecommendation: 0 };
+    const min = weight * 3;
+    const max = weight * 6;
+    const averageCaffeineRecommendation = (min + max) / 2;
+  
+    return { min, max, averageCaffeineRecommendation };
   };
+  
 
   const calculateAge = (year, month, day) => {
     if (!year || !month || !day) return null;
@@ -160,7 +220,54 @@ const HealthDetailsScreen = () => {
   };
 
   const handleContinue = async () => {
+    console.log("help");
+    console.log("is form valid?", isFormValid());
+    console.log("healthData", healthData);
+    console.log("custom fields", {
+      customHealthDescription,
+      customDietaryPreference,
+      selectedId,
+    });
+    if (!validateForm()) return;
     if (!isFormValid()) {
+      const missingFields = [];
+      const requiredFields = [
+        "birthDay",
+        "birthMonth",
+        "birthYear",
+        "weight",
+        "height",
+        "gender",
+        "healthCondition",
+        "activityLevel",
+        "dietaryPreferences",
+      ];
+
+      requiredFields.forEach((field) => {
+        if (!healthData[field]) {
+          missingFields.push(field);
+        }
+      });
+
+      if (healthData.gender === "Female" && !selectedId) {
+        missingFields.push("pregnant");
+      }
+
+      if (
+        healthData.healthCondition === "otherHealthConditions" &&
+        !customHealthDescription.trim()
+      ) {
+        missingFields.push("customHealthDescription");
+      }
+
+      if (
+        healthData.dietaryPreferences === "otherDietaryPreferences" &&
+        !customDietaryPreference.trim()
+      ) {
+        missingFields.push("customDietaryPreference");
+      }
+
+      console.log("🚨 שדות חסרים:", missingFields);
       Alert.alert("שגיאה", "אנא מלאי את כל השדות לפני המשך.");
       return;
     }
@@ -176,7 +283,16 @@ const HealthDetailsScreen = () => {
       pregnant: healthData.gender === "Female" ? selectedId : null,
       caffeineRecommendationMin: caffeineRecommendation.min,
       caffeineRecommendationMax: caffeineRecommendation.max,
-      birthDate, // הוספה חשובה!
+      averageCaffeineRecommendation: caffeineRecommendation.averageCaffeineRecommendation,
+      birthDate,
+      customHealthDescription:
+        healthData.healthCondition === "otherHealthConditions"
+          ? customHealthDescription
+          : null,
+      customDietaryPreference:
+        healthData.dietaryPreferences === "otherDietaryPreferences"
+          ? customDietaryPreference
+          : null,
     };
     console.log("📩 שולחת נתונים לשרת:", finalData);
 
@@ -226,7 +342,9 @@ const HealthDetailsScreen = () => {
             onChange={(item) => handleInputChange("birthYear", item.value)}
           />
         </View>
-
+        {errors.birthDate && (
+          <Text style={styles.errorText}>{errors.birthDate}</Text>
+        )}
         <Dropdown
           style={styles.dropdown}
           data={weights}
@@ -236,7 +354,7 @@ const HealthDetailsScreen = () => {
           value={healthData.weight}
           onChange={(item) => handleInputChange("weight", item.value)}
         />
-
+        {errors.height && <Text style={styles.errorText}>{errors.weight}</Text>}
         <Dropdown
           style={styles.dropdown}
           data={heights}
@@ -246,7 +364,7 @@ const HealthDetailsScreen = () => {
           value={healthData.height}
           onChange={(item) => handleInputChange("height", item.value)}
         />
-
+        {errors.height && <Text style={styles.errorText}>{errors.height}</Text>}
         <Dropdown
           style={styles.dropdown}
           data={genders}
@@ -256,7 +374,7 @@ const HealthDetailsScreen = () => {
           value={healthData.gender}
           onChange={(item) => handleInputChange("gender", item.value)}
         />
-
+        {errors.height && <Text style={styles.errorText}>{errors.gender}</Text>}
         {healthData.gender === "Female" && (
           <View style={styles.pregnancyContainer}>
             <RadioGroup
@@ -268,7 +386,9 @@ const HealthDetailsScreen = () => {
             <Text style={styles.pregnancyText}>האם את בהיריון?</Text>
           </View>
         )}
-
+        {errors.pregnant && (
+          <Text style={styles.errorText}>{errors.pregnant}</Text>
+        )}
         <Dropdown
           style={styles.dropdown}
           data={healthConditions}
@@ -278,6 +398,20 @@ const HealthDetailsScreen = () => {
           value={healthData.healthCondition}
           onChange={(item) => handleInputChange("healthCondition", item.value)}
         />
+        {errors.healthCondition && (
+          <Text style={styles.errorText}>{errors.healthCondition}</Text>
+        )}
+        {healthData.healthCondition === "otherHealthConditions" && (
+          <TextInput
+            placeholder="כתוב/י תיאור משלך"
+            value={customHealthDescription}
+            onChangeText={setCustomHealthDescription}
+            style={[styles.input, { marginTop: 10 }]}
+          />
+        )}
+        {errors.customHealthDescription && (
+          <Text style={styles.errorText}>{errors.customHealthDescription}</Text>
+        )}
         <Dropdown
           style={styles.dropdown}
           data={activityLevels}
@@ -287,6 +421,9 @@ const HealthDetailsScreen = () => {
           value={healthData.activityLevel}
           onChange={(item) => handleInputChange("activityLevel", item.value)}
         />
+        {errors.activityLevel && (
+          <Text style={styles.errorText}>{errors.activityLevel}</Text>
+        )}
         <Dropdown
           style={styles.dropdown}
           data={dietaryPreferences}
@@ -298,7 +435,20 @@ const HealthDetailsScreen = () => {
             handleInputChange("dietaryPreferences", item.value)
           }
         />
-
+        {errors.dietaryPreferences && (
+          <Text style={styles.errorText}>{errors.dietaryPreferences}</Text>
+        )}
+        {healthData.dietaryPreferences === "otherDietaryPreferences" && (
+          <TextInput
+            placeholder="כתוב/י תיאור משלך"
+            value={customDietaryPreference}
+            onChangeText={setCustomDietaryPreference}
+            style={[styles.input, { marginTop: 10 }]}
+          />
+        )}
+        {errors.customDietaryPreference && (
+          <Text style={styles.errorText}>{errors.customDietaryPreference}</Text>
+        )}
         <Button
           title="המשך"
           onPress={handleContinue}
@@ -351,6 +501,25 @@ const styles = StyleSheet.create({
   pregnancyText: {
     fontSize: 16,
     fontWeight: "500",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginBottom: 10,
+    marginTop: -10,
+    textAlign: "right",
+  },
+  input: {
+    height: 45,
+    borderColor: "gray",
+    borderWidth: 0.5,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    width: "100%",
+    marginBottom: 15,
+    textAlign: "right",
+    fontSize: 16,
+    color: "gray",
   },
 });
 

@@ -8,6 +8,10 @@ export default function CoffeeScreen() {
   const router = useRouter();
   const [isFilled, setIsFilled] = useState(false);
 
+  const [caffeineMin, setCaffeineMin] = useState(null);
+  const [caffeineMax, setCaffeineMax] = useState(null);
+  const [finalCaffeine, setCaffeine] = useState(null);
+  
   useEffect(() => {
     const fetchSurveyData = async () => {
       try {
@@ -17,10 +21,17 @@ export default function CoffeeScreen() {
         const response = await axios.get(
           `http://localhost:5000/api/auth/get-user/${userId}`
         );
+
         const userData = response.data.user;
-
+        const caffeineMin = userData.caffeineRecommendationMin;
+        const caffeineMax = userData.caffeineRecommendationMax;
         const coffeeData = userData.coffeeConsumption;
-
+        const finalCaffeine = userData.averageCaffeineRecommendation;
+        
+        setCaffeineMin(caffeineMin);
+        setCaffeineMax(caffeineMax);
+        setCaffeine(finalCaffeine);
+        
         const hasData =
           coffeeData &&
           Object.values(coffeeData).some((value) =>
@@ -41,6 +52,14 @@ export default function CoffeeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>מסך נתוני הקפה</Text>
+      {caffeineMin !== null && caffeineMax !== null ? (
+        <Text>
+          כמות הקפאין המומלצת עבורך: {caffeineMin} - {caffeineMax} מ"ג ביום 
+           {finalCaffeine} סה"כ
+        </Text>
+      ) : (
+        <Text>טוען נתונים...</Text>
+      )}
 
       <TouchableOpacity
         style={[styles.button, isFilled && styles.disabledButton]}

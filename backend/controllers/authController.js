@@ -10,8 +10,11 @@ const registerUser = async (req, res) => {
       userId, firstName, lastName, email, password, birthDate,
       weight, height, gender, phoneNumber, age,
       healthCondition, activityLevel, dietaryPreferences, coffeeConsumption,
-      caffeineRecommendationMin, caffeineRecommendationMax, pregnant
+      caffeineRecommendationMin, caffeineRecommendationMax, pregnant,
+      averageCaffeineRecommendation, customHealthDescription, 
+      customDietaryPreference   
     } = req.body;
+    
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -28,8 +31,12 @@ const registerUser = async (req, res) => {
       userId, firstName, lastName, email, password: hashedPassword, birthDate,
       age, weight, height, gender, phoneNumber,
       healthCondition, activityLevel, dietaryPreferences, coffeeConsumption,
-      caffeineRecommendationMin, caffeineRecommendationMax, pregnant
+      caffeineRecommendationMin, caffeineRecommendationMax, pregnant,
+      averageCaffeineRecommendation,
+      customHealthDescription, 
+      customDietaryPreference   
     });
+    
 
     await newUser.save();
 

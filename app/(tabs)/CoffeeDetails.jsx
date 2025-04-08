@@ -7,6 +7,7 @@ import {
   Button,
   Alert,
   TextInput,
+  TouchableOpacity,
 } from "react-native";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 import { useRouter } from "expo-router";
@@ -33,23 +34,21 @@ const CoffeeDetails = () => {
   const [isMotivation, setIsMotivation] = useState(false);
   const [coffeeTypesFromDb, setCoffeeTypesFromDb] = useState([]);
   const [errors, setErrors] = useState({});
+  const [servingSizesByType, setServingSizesByType] = useState({});
+  const [customDescription, setCustomDescription] = useState("");
+  const [cupsByType, setCupsByType] = useState({});
 
   const [coffeeData, setCoffeeData] = useState({
     coffeeType: [],
-    servingSize: null,
-    cupsPerDay: null,
     consumptionTime: [],
+    cupsPerDay: null,
   });
 
   useEffect(() => {
     const fetchCoffeeTypes = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/drinks");
-        const formatted = response.data.map((drink) => ({
-          label: drink.name,
-          value: drink.value,
-        }));
-        setCoffeeTypesFromDb(formatted);
+        setCoffeeTypesFromDb(response.data); // שומרת את כל המידע
       } catch (error) {
         console.error("❌ שגיאה בשליפת סוגי הקפה:", error.message);
       }
@@ -58,9 +57,15 @@ const CoffeeDetails = () => {
     fetchCoffeeTypes();
   }, []);
 
+  const coffeeOptions = coffeeTypesFromDb.map((drink) => ({
+    label: drink.name,
+    value: drink.value,
+  }));
+
+  //בדיקת מילוי השדות
   const checkValidate = () => {
     const newErrors = {};
-    const { coffeeType, servingSize, cupsPerDay, consumptionTime } = coffeeData;
+    const { coffeeType, cupsPerDay, consumptionTime } = coffeeData;
 
     if (sleepFromHour === null)
       newErrors.sleepFromHour = "יש לבחור שעת התחלת שינה";
@@ -75,9 +80,14 @@ const CoffeeDetails = () => {
       if (workEndHour === null)
         newErrors.workEndHour = "יש לבחור שעת סיום עבודה";
     }
-    if (!consumptionTime || consumptionTime.length === 0)
+    if (!coffeeData.consumptionTime || coffeeData.consumptionTime.length === 0)
       newErrors.consumptionTime = "יש לבחור לפחות זמן אחד לצריכת קפה";
-    if (cupsPerDay === null) newErrors.cupsPerDay = "יש לבחור כמות כוסות";
+    if (
+      coffeeData.coffeeType.some((type) => cupsByType[type] === undefined) ||
+      coffeeData.coffeeType.some((type) => cupsByType[type] == null)
+    ) {
+      newErrors.cupsByType = "יש להזין כמות כוסות לכל סוג קפה";
+    }
     if (!effects) newErrors.effects = "יש לבחור השפעה";
     if (!isTryingToReduce)
       newErrors.isTryingToReduce = "יש לבחור אם אתה מנסה להפחית";
@@ -86,13 +96,33 @@ const CoffeeDetails = () => {
     if (!importanceLevel) newErrors.importanceLevel = "יש לבחור רמת חשיבות";
     if (!coffeeType || coffeeType.length === 0)
       newErrors.coffeeType = "יש לבחור לפחות סוג קפה אחד";
-    if (!servingSize) newErrors.servingSize = "יש לבחור סוג הגשה";
     if (!selfDescription) newErrors.selfDescription = "יש לבחור תיאור אישי";
+    if (coffeeData.coffeeType.some((type) => !servingSizesByType[type])) {
+      newErrors.servingSizesByType = "יש לבחור מידת הגשה לכל סוג קפה שנבחר";
+    }
+    if (selfDescription === "other" && customDescription.trim() === "") {
+      newErrors.selfDescription = "יש להזין תיאור אישי";
+    }
 
     setErrors(newErrors);
 
     return Object.keys(newErrors).length > 0;
   };
+
+  // בדיקת צריכת קפאין יומית
+  const averageCaffeinePerDay = coffeeData.coffeeType.reduce((total, type) => {
+    const coffee = coffeeTypesFromDb.find((c) => c.value === type);
+    const userServingSize = parseFloat(servingSizesByType[type]) || 0;
+    const cups = cupsByType[type] || 0;
+
+    if (coffee && coffee.servingSizeMl && coffee.caffeineMg) {
+      const caffeinePerCup =
+        (userServingSize / coffee.servingSizeMl) * coffee.caffeineMg;
+      return total + caffeinePerCup * cups;
+    }
+
+    return total;
+  }, 0);
 
   const handleInputChange = (key, value) => {
     setCoffeeData((prev) => ({ ...prev, [key]: value }));
@@ -104,16 +134,20 @@ const CoffeeDetails = () => {
     });
   };
 
+  //חישוב משך
   const calculateDuration = (start, end) => {
     if (start == null || end == null) return 0;
     return end >= start ? end - start : 24 - start + end;
   };
 
-  const sleepDuration = useMemo(
+  //משך זמן שינה
+  const sleepDurationAverage = useMemo(
     () => calculateDuration(sleepFromHour, sleepToHour),
     [sleepFromHour, sleepToHour]
   );
-  const workDuration = useMemo(
+
+  //משך זמן עבודה
+  const workDurationAverage = useMemo(
     () => calculateDuration(workStartHour, workEndHour),
     [workStartHour, workEndHour]
   );
@@ -150,9 +184,15 @@ const CoffeeDetails = () => {
   );
 
   const servingSizes = [
-    { label: 'קטן (160 מ"ל)', value: "Small" },
-    { label: 'בינוני (240 מ"ל)', value: "Medium" },
-    { label: 'גדול (360 מ"ל)', value: "Large" },
+    { label: ' (30 מ"ל)', value: "30" },
+    { label: ' (50 מ"ל)', value: "50" },
+    { label: ' (100 מ"ל)', value: "100" },
+    { label: ' (160 מ"ל)', value: "160" },
+    { label: ' (200 מ"ל)', value: "200" },
+    { label: ' (240 מ"ל)', value: "240" },
+    { label: ' (360 מ"ל)', value: "360" },
+    { label: ' (500 מ"ל)', value: "500" },
+    { label: ' (660 מ"ל)', value: "660" },
   ];
 
   const coffeeConsumption = Array.from({ length: 11 }, (_, i) => ({
@@ -160,17 +200,23 @@ const CoffeeDetails = () => {
     value: i,
   }));
 
+  const averageCupsPerDay =
+    coffeeData.coffeeType.length > 0
+      ? Object.values(cupsByType).reduce((a, b) => a + b, 0) /
+        coffeeData.coffeeType.length
+      : 0;
+
   const timesPerDay = [
-    { label: "בוקר", value: "Morning Only" },
-    { label: "צהריים", value: "Afternoon Only" },
-    { label: "ערב", value: "evening only" },
-    { label: "במהלך כל היום", value: "Throughout the day" },
+    { label: "בוקר", value: "Morning" },
+    { label: "צהריים", value: "Afternoon" },
+    { label: "ערב", value: "evening" },
+    { label: "לילה", value: "night" },
   ];
 
   const selfDescriptions = [
     {
-      label: "אני טיפוס של בוקר, אוהב קפה חזק ומר",
-      value: "אני טיפוס של בוקר, אוהב קפה חזק ומר",
+      label: "אני טיפוס של בוקר, אוהב קפה  ",
+      value: "אני טיפוס של בוקר, אוהב קפה  ",
     },
     {
       label: "שותה קפה בעיקר כדי להתעורר",
@@ -179,8 +225,36 @@ const CoffeeDetails = () => {
     { label: "קפה בשבילי הוא רגע של שקט", value: "קפה בשבילי הוא רגע של שקט" },
     { label: "שותה קפה מתוך הרגל", value: "שותה קפה מתוך הרגל" },
     { label: "קפה בשבילי הוא חלק מהחברה", value: "קפה בשבילי הוא חלק מהחברה" },
+    {
+      label: "לא מתחיל/ה את היום בלי קפה",
+      value: "לא מתחיל/ה את היום בלי קפה",
+    },
+    {
+      label: "קפה זה החבר הכי טוב שלי בבוקר",
+      value: "קפה זה החבר הכי טוב שלי בבוקר",
+    },
+    {
+      label: "אני לא באמת אוהב/ת קפה, פשוט רגיל/ה לשתות",
+      value: "אני לא באמת אוהב/ת קפה, פשוט רגיל/ה לשתות",
+    },
+    {
+      label: "אני נהנ/ית מהריח יותר מאשר מהטעם",
+      value: "אני נהנ/ית מהריח יותר מאשר מהטעם",
+    },
+    { label: "הקפה בשבילי הוא תרבות", value: "הקפה בשבילי הוא תרבות" },
+    {
+      label: "שותה קפה כשעובד/ת, אבל לא מחוץ לזה",
+      value: "שותה קפה כשעובד/ת, אבל לא מחוץ לזה",
+    },
+    { label: "שותה קפה רק כשיש עוגה ליד", value: "שותה קפה רק כשיש עוגה ליד" },
+    {
+      label: "מנסה להפוך לתה אדם, אבל הקפה לא משחרר",
+      value: "מנסה להפוך לתה אדם, אבל הקפה לא משחרר",
+    },
+    { label: "אחר", value: "other" },
   ];
 
+  //איפוס הפרמטרים בעת היציאה מהדף
   const resetForm = () => {
     setSelfDescription("");
     setIsWorking(null);
@@ -195,54 +269,66 @@ const CoffeeDetails = () => {
     setIsMotivation(false);
     setCoffeeData({
       coffeeType: [],
-      servingSize: null,
       cupsPerDay: null,
       consumptionTime: [],
     });
     setErrors({});
   };
-
+  // מוטיבציה
   const handleImportanceChange = (item) => {
     setImportanceLevel(item.value);
     setIsMotivation(item.value >= 3);
   };
 
+  //הרשמה
   const handleRegister = async () => {
+    console.log("its clicked");
     const hasErrors = checkValidate();
     if (hasErrors) {
       Alert.alert("שגיאה", "אנא תקנ/י את השדות המסומנים באדום");
       return;
     }
-  
+
     try {
+      // מערך coffeeType עם מבנה של name + size + cups
+      const structuredCoffeeTypes = coffeeData.coffeeType.map((type) => ({
+        name: type,
+        size: servingSizesByType[type] || null,
+        cups: cupsByType[type] || 0, // 👈 כל סוג מקבל את הכמות שלו
+      }));
+
       const userId = await AsyncStorage.getItem("userId");
       const finalData = {
         coffeeConsumption: {
-          ...coffeeData,
-          cupsPerDay: Number(coffeeData.cupsPerDay),
+          coffeeType: structuredCoffeeTypes,
+          cupsPerDay: averageCupsPerDay,
+          consumptionTime: coffeeData.consumptionTime,
+          averageCaffeinePerDay,
+          selfDescription:
+            selfDescription === "other" ? customDescription : selfDescription,
           isWorking,
           effects,
           isTryingToReduce,
-          selfDescription,
           sleepFromHour,
           sleepToHour,
           workStartHour,
           workEndHour,
-          sleepDuration,
-          workDuration,
+          sleepDurationAverage,
+          workDurationAverage,
           isMotivation,
           reductionExplanation,
+          importanceLevel,
         },
       };
-  
+
       const response = await axios.put(
         `http://localhost:5000/api/auth/update-coffee-consumption/${userId}`,
         finalData.coffeeConsumption
       );
-  
+
       console.log("📦 נתונים שנשלחים לשרת: ", finalData);
       console.log("✅ עדכון הצליח:", response.data);
-  
+
       // ✅ הודעת הצלחה ואז ניתוב חזרה למסך הקודם
       Alert.alert("הצלחה", "✅ הנתונים נשמרו בהצלחה!", [
         {
@@ -257,9 +343,9 @@ const CoffeeDetails = () => {
       console.error("❌ שגיאה בעדכון המשתמש:", err);
     }
   };
-  
+
   return (
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         <Text style={styles.title}>פרטי צריכת קפה</Text>
         <Text>🛌 כמה שעות את/ה ישנ/ה בממוצע ביממה?</Text>
@@ -286,9 +372,9 @@ const CoffeeDetails = () => {
             placeholderStyle={{ textAlign: "right" }}
             selectedTextStyle={{ textAlign: "right" }}
           />
-          {errors.sleepToHour && (
+          {/* {errors.sleepToHour && (
             <Text style={{ color: "red" }}>{errors.sleepToHour}</Text>
-          )}
+          )} */}
 
           <Dropdown
             style={[
@@ -312,12 +398,10 @@ const CoffeeDetails = () => {
             placeholderStyle={{ textAlign: "right" }}
             selectedTextStyle={{ textAlign: "right" }}
           />
-          {errors.sleepFromHour && (
+          {/* {errors.sleepFromHour && (
             <Text style={{ color: "red" }}>{errors.sleepFromHour}</Text>
-          )}
+          )} */}
         </View>
-        {/* <Text>😴 שעות שינה: {sleepDuration}</Text>
-        <Text>👨‍💻 שעות עבודה: {workDuration}</Text> */}
         <Text>💼 האם אתה בשגרת עבודה?</Text>
         <RadioGroup
           radioButtons={yesNoOptions}
@@ -339,31 +423,9 @@ const CoffeeDetails = () => {
           <>
             <Text>🕘 מהן שעות העבודה שלך?</Text>
             <View style={styles.sleepTimeRow}>
-              <Dropdown
-                style={[
-                  styles.dropdown,
-                  styles.sleepDropdown,
-                  errors.selfDescription && styles.errorField,
-                ]}
-                data={hoursOptions}
-                labelField="label"
-                valueField="value"
-                placeholder="משעה"
-                value={workStartHour}
-                onChange={(item) => {
-                  setWorkStartHour(item.value);
-                  setErrors((prev) => {
-                    const updated = { ...prev };
-                    delete updated.selfDescription;
-                    return updated;
-                  });
-                }}
-                placeholderStyle={{ textAlign: "right" }}
-                selectedTextStyle={{ textAlign: "right" }}
-              />
-              {errors.workStartHour && (
+              {/* {errors.workStartHour && (
                 <Text style={{ color: "red" }}>{errors.workStartHour}</Text>
-              )}
+              )} */}
               <Dropdown
                 style={[
                   styles.dropdown,
@@ -386,9 +448,31 @@ const CoffeeDetails = () => {
                 placeholderStyle={{ textAlign: "right" }}
                 selectedTextStyle={{ textAlign: "right" }}
               />
-              {errors.workEndHour && (
+              <Dropdown
+                style={[
+                  styles.dropdown,
+                  styles.sleepDropdown,
+                  errors.selfDescription && styles.errorField,
+                ]}
+                data={hoursOptions}
+                labelField="label"
+                valueField="value"
+                placeholder="משעה"
+                value={workStartHour}
+                onChange={(item) => {
+                  setWorkStartHour(item.value);
+                  setErrors((prev) => {
+                    const updated = { ...prev };
+                    delete updated.selfDescription;
+                    return updated;
+                  });
+                }}
+                placeholderStyle={{ textAlign: "right" }}
+                selectedTextStyle={{ textAlign: "right" }}
+              />
+              {/* {errors.workEndHour && (
                 <Text style={{ color: "red" }}>{errors.workEndHour}</Text>
-              )}
+              )} */}
             </View>
           </>
         )}
@@ -424,30 +508,6 @@ const CoffeeDetails = () => {
         {errors.consumptionTime && (
           <Text style={{ color: "red" }}>{errors.consumptionTime}</Text>
         )}
-
-        <Text>🥤 כמה כוסות קפה ביום?</Text>
-        <Dropdown
-          style={[styles.dropdown, errors.selfDescription && styles.errorField]}
-          data={coffeeConsumption}
-          labelField="label"
-          placeholder="בחר כמות כוסות"
-          valueField="value"
-          value={coffeeData.cupsPerDay}
-          onChange={(item) => {
-            handleInputChange("cupsPerDay", item.value);
-            setErrors((prev) => {
-              const updated = { ...prev };
-              delete updated.selfDescription;
-              return updated;
-            });
-          }}
-          placeholderStyle={{ textAlign: "right" }}
-          selectedTextStyle={{ textAlign: "right" }}
-        />
-        {errors.cupsPerDay && (
-          <Text style={{ color: "red" }}>{errors.cupsPerDay}</Text>
-        )}
-
         <Text>📌 האם שתיית הקפה משפיעה עליך רגשית / פיזית / שניהם?</Text>
         <Dropdown
           style={[styles.dropdown, errors.effects && styles.errorField]}
@@ -539,13 +599,21 @@ const CoffeeDetails = () => {
         <Text>☕ סוגי קפה מועדפים:</Text>
         <MultiSelect
           style={[styles.dropdown, errors.coffeeType && styles.errorField]}
-          data={coffeeTypesFromDb}
+          data={coffeeOptions}
           labelField="label"
           valueField="value"
           placeholder="בחר סוגי קפה"
           value={coffeeData.coffeeType}
-          onChange={(item) => {
-            handleInputChange("coffeeType", item);
+          onChange={(selectedTypes) => {
+            handleInputChange("coffeeType", selectedTypes);
+
+            // יוצרים map חדש של serving sizes לפי סוגים שנבחרו
+            const newServingMap = {};
+            selectedTypes.forEach((type) => {
+              newServingMap[type] = servingSizesByType[type] || null;
+            });
+            setServingSizesByType(newServingMap);
+
             setErrors((prev) => {
               const updated = { ...prev };
               delete updated.selfDescription;
@@ -568,27 +636,67 @@ const CoffeeDetails = () => {
         {errors.coffeeType && (
           <Text style={{ color: "red" }}>{errors.coffeeType}</Text>
         )}
-        <Text>📏 מה מידת ההגשה המועדפת?</Text>
-        <Dropdown
-          style={[styles.dropdown, errors.selfDescription && styles.errorField]}
-          data={servingSizes}
-          labelField="label"
-          valueField="value"
-          placeholder="בחר סוג הגשה"
-          value={coffeeData.servingSize}
-          onChange={(item) => {
-            handleInputChange("servingSize", item.value);
-            setErrors((prev) => {
-              const updated = { ...prev };
-              delete updated.selfDescription;
-              return updated;
-            });
-          }}
-          placeholderStyle={{ textAlign: "right" }}
-          selectedTextStyle={{ textAlign: "right" }}
-        />
-        {errors.servingSize && (
-          <Text style={{ color: "red" }}>{errors.servingSize}</Text>
+        {coffeeData.coffeeType.length > 0 && (
+          <View style={{ marginTop: 10 }}>
+            <Text>📏 בחר/י מידת הגשה עבור כל סוג קפה:</Text>
+            {coffeeData.coffeeType.map((name) => (
+              <View key={name} style={{ marginVertical: 8 }}>
+                <Text style={{ marginBottom: 4 }}>
+                  סוג:{" "}
+                  {coffeeTypesFromDb.find((c) => c.value === name)?.name || name}
+                </Text>
+                <Dropdown
+                  data={servingSizes}
+                  labelField="label"
+                  valueField="value"
+                  placeholder="בחר מידה"
+                  value={servingSizesByType[name] || null}
+                  onChange={(item) => {
+                    setServingSizesByType((prev) => ({
+                      ...prev,
+                      [name]: item.value,
+                    }));
+                  }}
+                  placeholderStyle={{ textAlign: "right" }}
+                  selectedTextStyle={{ textAlign: "right" }}
+                  style={styles.dropdown}
+                />
+                <Text>בחר כמות כוסות קפה ביום</Text>
+                <Dropdown
+                  style={[
+                    styles.dropdown,
+                    errors.cupsByType &&
+                      cupsByType[name] == null &&
+                      styles.errorField,
+                  ]}
+                  data={coffeeConsumption}
+                  labelField="label"
+                  placeholder="בחר כמות"
+                  valueField="value"
+                  value={cupsByType[name] || null}
+                  onChange={(item) => {
+                    setCupsByType((prev) => ({
+                      ...prev,
+                      [name]: item.value,
+                    }));
+                    setErrors((prev) => {
+                      const updated = { ...prev };
+                      delete updated.cupsByType;
+                      return updated;
+                    });
+                  }}
+                  placeholderStyle={{ textAlign: "right" }}
+                  selectedTextStyle={{ textAlign: "right" }}
+                />
+                {errors.cupsByType && (
+                  <Text style={{ color: "red" }}>{errors.cupsByType}</Text>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+        {errors.servingSizesByType && (
+          <Text style={{ color: "red" }}>{errors.servingSizesByType}</Text>
         )}
         <Text>🔍 תבחר/י את המשפט שאת/ה הכי מזדהה איתו:</Text>
         <Dropdown
@@ -609,19 +717,34 @@ const CoffeeDetails = () => {
           placeholderStyle={{ textAlign: "right" }}
           selectedTextStyle={{ textAlign: "right" }}
         />
+        {selfDescription === "other" && (
+          <TextInput
+            placeholder="כתוב/י תיאור משלך"
+            value={customDescription}
+            onChangeText={(text) => setCustomDescription(text)}
+            style={[styles.input, { marginTop: 10 }]}
+          />
+        )}
         {errors.selfDescription && (
           <Text style={{ color: "red" }}>{errors.selfDescription}</Text>
         )}
         <View style={styles.buttonGroup}>
-          <Button title="סיום" onPress={handleRegister} color="#4CAF50" />
-          <Button
-            title="חזור"
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={handleRegister}
+          >
+            <Text style={styles.buttonText}>סיום</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.secondaryButton}
             onPress={() => {
               resetForm();
               router.push("/coffee");
             }}
-            color="#888"
-          />
+          >
+            <Text style={styles.buttonText}>חזור</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -674,6 +797,7 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 20,
     gap: 10,
+    borderRadius: 10,
   },
   sleepTimeRow: {
     flexDirection: "row",
@@ -714,7 +838,29 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: "center",
   },
-  
+  primaryButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 12,
+    paddingHorizontal: 5,
+    borderRadius: 10,
+    alignItems: "center",
+    flex: 1,
+  },
+
+  secondaryButton: {
+    backgroundColor: "#888",
+    paddingVertical: 12,
+    paddingHorizontal: 5,
+    borderRadius: 10,
+    alignItems: "center",
+    flex: 1,
+  },
+
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
 
 export default CoffeeDetails;

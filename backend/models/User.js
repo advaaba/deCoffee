@@ -18,9 +18,18 @@ const userSchema = new mongoose.Schema({
   pregnant: { type: String },
   caffeineRecommendationMin: { type: Number },
   caffeineRecommendationMax: { type: Number },
+  averageCaffeineRecommendation: { type: Number },
+  customHealthDescription: { type: String },
+  customDietaryPreference: { type: String },
 
   coffeeConsumption: {
-    coffeeType: [String],
+    coffeeType: [
+      {
+        name: String,
+        size: String,
+        cups: Number,
+      }
+    ],    
     servingSize: { type: String, enum: ["Small", "Medium", "Large"] },
     cupsPerDay: Number,
     consumptionTime: [String],
@@ -29,13 +38,14 @@ const userSchema = new mongoose.Schema({
     workEndHour: Number,
     sleepFromHour: Number,
     sleepToHour: Number,
-    sleepDuration: Number,
-    workDuration: Number,
+    sleepDurationAverage: Number,
+    workDurationAverage: Number,
     effects: { type: String, enum: ["physically", "mentally", "both"] },
     isTryingToReduce: { type: String, enum: ["yes", "no"] },
     reductionExplanation: String,
     isMotivation: Boolean,
-    selfDescription: String
+    selfDescription: String,
+    averageCaffeinePerDay: {type: Number},
   }
 
 }, { timestamps: true });
