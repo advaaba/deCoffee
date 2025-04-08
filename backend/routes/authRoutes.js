@@ -3,7 +3,8 @@ const router = express.Router();
 const {
   registerUser,
   loginUser,
-  updateCoffeeConsumption
+  updateCoffeeConsumption,
+  getInsights,
 } = require('../controllers/authController');
 const User = require('../models/User');
 
@@ -49,5 +50,7 @@ router.put('/update-user/:userId', async (req, res) => {
 
 // ✅ מסלול ייעודי לעדכון נתוני צריכת קפה בלבד
 router.put('/update-coffee-consumption/:userId', updateCoffeeConsumption);
+// 📊 שליפת תובנות מהאלגוריתם
+router.get('/get-insights/:userId', getInsights);
 
 module.exports = router;
