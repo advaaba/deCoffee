@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useLayoutEffect } from "react";
 import { useEffect } from "react";
-import TensorDemo from '@/components/TensorDemo';
 
 export default function OpenScreen() {
   const router = useRouter();
@@ -18,7 +17,6 @@ export default function OpenScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>ברוכים הבאים ל-DeCoffee ☕</Text>
       <Text style={styles.subtitle}>בחרו אפשרות:</Text>
-      <TensorDemo />
       <TouchableOpacity
         style={styles.button}
         onPress={() => router.push("/login")} // ✅ תוקן
