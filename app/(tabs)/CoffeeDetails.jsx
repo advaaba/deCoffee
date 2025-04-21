@@ -47,7 +47,8 @@ const CoffeeDetails = () => {
   useEffect(() => {
     const fetchCoffeeTypes = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/drinks");
+        // const response = await axios.get("http://localhost:5000/api/drinks");
+        const response = await axios.get("http://172.20.10.10:5000/api/drinks");
         setCoffeeTypesFromDb(response.data); // שומרת את כל המידע
       } catch (error) {
         console.error("❌ שגיאה בשליפת סוגי הקפה:", error.message);
@@ -376,8 +377,8 @@ const CoffeeDetails = () => {
                 return updated;
               });
             }}
-            placeholderStyle={{ textAlign: "right" }}
-            selectedTextStyle={{ textAlign: "right" }}
+            placeholderStyle={styles.placeholderText}
+            selectedTextStyle={styles.selectedText}
           />
           {/* {errors.sleepToHour && (
             <Text style={{ color: "red" }}>{errors.sleepToHour}</Text>
@@ -402,8 +403,8 @@ const CoffeeDetails = () => {
                 return updated;
               });
             }}
-            placeholderStyle={{ textAlign: "right" }}
-            selectedTextStyle={{ textAlign: "right" }}
+            placeholderStyle={styles.placeholderText}
+            selectedTextStyle={styles.selectedText}
           />
           {/* {errors.sleepFromHour && (
             <Text style={{ color: "red" }}>{errors.sleepFromHour}</Text>
@@ -452,8 +453,8 @@ const CoffeeDetails = () => {
                     return updated;
                   });
                 }}
-                placeholderStyle={{ textAlign: "right" }}
-                selectedTextStyle={{ textAlign: "right" }}
+                placeholderStyle={styles.placeholderText}
+                selectedTextStyle={styles.selectedText}
               />
               <Dropdown
                 style={[
@@ -474,8 +475,8 @@ const CoffeeDetails = () => {
                     return updated;
                   });
                 }}
-                placeholderStyle={{ textAlign: "right" }}
-                selectedTextStyle={{ textAlign: "right" }}
+                placeholderStyle={styles.placeholderText}
+                selectedTextStyle={styles.selectedText}
               />
               {/* {errors.workEndHour && (
                 <Text style={{ color: "red" }}>{errors.workEndHour}</Text>
@@ -499,8 +500,8 @@ const CoffeeDetails = () => {
               return updated;
             });
           }}
-          placeholderStyle={{ textAlign: "right" }}
-          selectedTextStyle={{ textAlign: "right", textDirection: "rtl" }}
+          placeholderStyle={styles.placeholderText}
+          selectedTextStyle={styles.selectedText}
           selectedStyle={{
             flexDirection: "row-reverse",
             justifyContent: "flex-end",
@@ -531,8 +532,8 @@ const CoffeeDetails = () => {
               return updated;
             });
           }}
-          placeholderStyle={{ textAlign: "right" }}
-          selectedTextStyle={{ textAlign: "right" }}
+          placeholderStyle={styles.placeholderText}
+          selectedTextStyle={styles.selectedText}
         />
         {errors.effects && (
           <Text style={{ color: "red" }}>{errors.effects}</Text>
@@ -597,8 +598,8 @@ const CoffeeDetails = () => {
               return updated;
             });
           }}
-          placeholderStyle={{ textAlign: "right" }}
-          selectedTextStyle={{ textAlign: "right" }}
+          placeholderStyle={styles.placeholderText}
+          selectedTextStyle={styles.selectedText}
         />
         {errors.importanceLevels && (
           <Text style={{ color: "red" }}>{errors.importanceLevels}</Text>
@@ -627,8 +628,8 @@ const CoffeeDetails = () => {
               return updated;
             });
           }}
-          placeholderStyle={{ textAlign: "right" }}
-          selectedTextStyle={{ textAlign: "right" }}
+          placeholderStyle={styles.placeholderText}
+          selectedTextStyle={styles.selectedText}
           selectedStyle={{
             flexDirection: "row-reverse",
             justifyContent: "flex-end",
@@ -665,8 +666,8 @@ const CoffeeDetails = () => {
                       [name]: item.value,
                     }));
                   }}
-                  placeholderStyle={{ textAlign: "right" }}
-                  selectedTextStyle={{ textAlign: "right" }}
+                  placeholderStyle={styles.placeholderText}
+                  selectedTextStyle={styles.selectedText}
                   style={styles.dropdown}
                 />
                 <Text>בחר כמות כוסות קפה ביום</Text>
@@ -693,8 +694,8 @@ const CoffeeDetails = () => {
                       return updated;
                     });
                   }}
-                  placeholderStyle={{ textAlign: "right" }}
-                  selectedTextStyle={{ textAlign: "right" }}
+                  placeholderStyle={styles.placeholderText}
+                  selectedTextStyle={styles.selectedText}
                 />
                 {errors.cupsByType && (
                   <Text style={{ color: "red" }}>{errors.cupsByType}</Text>
@@ -722,8 +723,8 @@ const CoffeeDetails = () => {
               return updated;
             });
           }}
-          placeholderStyle={{ textAlign: "right" }}
-          selectedTextStyle={{ textAlign: "right" }}
+          placeholderStyle={styles.placeholderText}
+          selectedTextStyle={styles.selectedText}
         />
         {selfDescription === "other" && (
           <TextInput
@@ -754,6 +755,7 @@ const CoffeeDetails = () => {
             <Text style={styles.buttonText}>חזור</Text>
           </TouchableOpacity>
         </View>
+        
       </View>
     </ScrollView>
   );
@@ -868,6 +870,14 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  placeholderText: {
+    textAlign: "right",
+    color: "#999",
+  },
+  selectedText: {
+    textAlign: "right",
+    color: "#333",
   },
 });
 

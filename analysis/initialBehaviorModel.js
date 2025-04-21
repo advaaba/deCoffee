@@ -1,21 +1,22 @@
-import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-react-native';
 
 export async function analyzeInitialPattern(user) {
   await tf.ready();
 
   const input = [
-    user.age,
-    user.averageCaffeinePerDay,
-    user.sleepDurationAverage,
-    user.workDurationAverage,
-    user.caffeineRecommendationMin,
-    user.caffeineRecommendationMax,
-    user.isTryingToReduce === "yes" ? 1 : 0,
+    user.age ?? 0,
+    user.averageCaffeinePerDay ?? 0,
+    user.sleepDurationAverage ?? 0,
+    user.workDurationAverage ?? 0,
+    user.caffeineRecommendationMin ?? 0,
+    user.caffeineRecommendationMax ?? 0,
+    user.isTryingToReduce ? 1 : 0,
     user.isMotivation ? 1 : 0,
-    user.selfDescription?.includes("שקט") ? 1 : 0,
-    user.selfDescription?.includes("להתעורר") ? 1 : 0,
+    (user.selfDescription || "").includes("שקט") ? 1 : 0,
+    (user.selfDescription || "").includes("להתעורר") ? 1 : 0,
     user.activityLevel === "High" ? 1 : 0
   ];
+  
 
   // ⚠ כאן נתוני אימון צריכים להיות באותו מבנה: 11 עמודות
   const xs = tf.tensor2d([

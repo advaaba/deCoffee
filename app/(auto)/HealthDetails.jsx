@@ -17,7 +17,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const HealthDetailsScreen = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
-  const SERVER_URL = "http://localhost:5000/api/auth/register";
+  // const SERVER_URL = "http://localhost:5000/api/auth/register";
+  const SERVER_URL = "http://172.20.10.10:5000/api/auth/register";
   const [errors, setErrors] = useState({});
   const validateForm = () => {
     const newErrors = {};

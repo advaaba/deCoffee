@@ -7,7 +7,8 @@ import { useEffect } from "react";
 export default function OpenScreen() {
   const router = useRouter();
   const navigation = useNavigation();
-
+  // `http://172.20.10.10:5000/api/auth/get-user/${userId}`
+          // `http://localhost:5000/api/auth/get-user/${userId}`
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: "DeCoffee" });
@@ -21,14 +22,14 @@ export default function OpenScreen() {
         style={styles.button}
         onPress={() => router.push("/login")} // ✅ תוקן
       >
-        <Text style={styles.buttonText}>🔑 התחברות</Text>
+        <Text style={styles.buttonText}> התחברות</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.button, styles.registerButton]}
         onPress={() => router.push("/PersonalDetails")} // ✅ תוקן
       >
-        <Text style={styles.buttonText}>📝 הרשמה</Text>
+        <Text style={styles.buttonText}> הרשמה</Text>
       </TouchableOpacity>
     </View>
   );

@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   View,
+  TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -30,7 +31,8 @@ export default function HomeScreen() {
           return;
         }
         const response = await axios.get(
-          `http://localhost:5000/api/auth/get-user/${userId}`
+          `http://172.20.10.10:5000/api/auth/get-user/${userId}`
+          // `http://localhost:5000/api/auth/get-user/${userId}`
         );
         if (response.data.success) {
           setUser(response.data.user);
@@ -57,17 +59,31 @@ export default function HomeScreen() {
     });
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("userToken");
-      await AsyncStorage.removeItem("userId");
-      router.replace("/open-screen");
-    } catch (error) {
-      console.error(
-        "\u274c \u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05d4\u05ea\u05e0\u05ea\u05e7\u05d5\u05ea:",
-        error
-      );
-    }
+  const handleLogout = () => {
+    Alert.alert(
+      " התנתקות",
+      "האם את בטוחה שברצונך להתנתק?",
+      [
+        {
+          text: "ביטול",
+          style: "cancel",
+        },
+        {
+          text: "התנתק/י",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await AsyncStorage.removeItem("userToken");
+              await AsyncStorage.removeItem("userId");
+              router.replace("/open-screen");
+            } catch (error) {
+              console.error("❌ שגיאה בהתנתקות:", error);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   if (loading)
@@ -85,13 +101,24 @@ export default function HomeScreen() {
         <>
           <Text style={styles.title}>שלום, {user.firstName} 👋</Text>
           <Text style={styles.text}>ברוכה הבאה ל־DeCoffee 🌿</Text>
-          <Text style={styles.text}>המסע שלך לקפה מודע מתחיל כאן.</Text>
+          <Text style={styles.text}>
+            האפליקצייה שתעזור לך לעקוב אחרי הרגלי שתיית הקפה שלך, להבין איך
+            קפאין משפיע עלייך ולבנות הרגלים שמתאימים לך אישית
+          </Text>
           <View style={styles.section}>
             <Text style={styles.subTitle}>📊 מצב יומי:</Text>
             <Text style={styles.text}>
               עוד לא התחלת לעקוב אחרי הקפה שלך היום.
             </Text>
+            <TouchableOpacity onPress={handleLogout} style={styles.backLink}>
+              <Text style={styles.linkText}>התנתקות מהחשבון</Text>
+            </TouchableOpacity>
           </View>
+          <Button
+            title="התחילי מעקב יומי"
+            onPress={() => router.push("/create")}
+            color="#4CAF50"
+          />
         </>
       ) : (
         <Text style={styles.text}>לא נמצאו נתוני משתמש.</Text>
@@ -107,17 +134,31 @@ const styles = StyleSheet.create({
     // backgroundColor: "#fff",
     minHeight: "100%",
   },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 10, 
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 10,
     // color: "white"
-   },
+  },
   subTitle: {
     fontSize: 20,
     fontWeight: "600",
     color: "#a3d9a5",
     marginBottom: 5,
   },
-  text: { 
+  text: {
     // color: "white",
-    textAlign: "center", marginBottom: 10 },
+    textAlign: "center",
+    marginBottom: 10,
+  },
   section: { marginTop: 30, marginBottom: 20, width: "100%" },
+  backLink: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+  linkText: {
+    color: "#2196F3",
+    textDecorationLine: "underline",
+    fontSize: 16,
+  },
 });

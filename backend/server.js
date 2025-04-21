@@ -5,6 +5,7 @@ const cors = require('cors');
 const config = require('./config');
 const authRoutes = require('./routes/authRoutes');
 const drinkRoutes = require("./routes/drinkRoutes");
+const notificationsRoutes = require("./routes/notifications");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -16,6 +17,7 @@ app.use(express.json());
 // שימוש בנתיבים
 app.use('/api/auth', authRoutes);
 app.use("/api/drinks", drinkRoutes);
+app.use("/api/notifications", notificationsRoutes);
 
 // בדיקת חיבור לשרת
 app.get('/', (req, res) => {

@@ -3,8 +3,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { analyzeInitialPattern } from "../analysis/initialBehaviorModel";
-
+// import { analyzeInitialPattern } from "../../analysis/initialBehaviorModel";
 
 export default function CoffeeScreen() {
   const router = useRouter();
@@ -25,30 +24,49 @@ export default function CoffeeScreen() {
         if (!userId) return;
 
         const response = await axios.get(
-          `http://localhost:5000/api/auth/get-user/${userId}`
+          `http://172.20.10.10:5000/api/auth/get-user/${userId}`
+          // `http://localhost:5000/api/auth/get-user/${userId}`
         );
 
         const userData = response.data.user;
         const caffeineMin = userData.caffeineRecommendationMin;
         const caffeineMax = userData.caffeineRecommendationMax;
         const finalCaffeine = userData.averageCaffeineRecommendation;
-        const coffeeData = userData.coffeeConsumption;
-
-        // הרצת ניתוח TensorFlow בצד לקוח
-        const aiText = await analyzeInitialPattern({
+        // const coffeeData = userData.coffeeConsumption;
+        const averageCaffeinePerDay =
+          userData.averageCaffeinePerDay ??
+          coffeeData?.averageCaffeinePerDay ??
+          0;
+        console.log("🧠 נשלח ל־AI:", {
           age: userData.age,
-          averageCaffeinePerDay: userData.averageCaffeinePerDay,
-          sleepDurationAverage: userData.coffeeConsumption?.sleepDurationAverage,
-          workDurationAverage: userData.coffeeConsumption?.workDurationAverage,
-          caffeineRecommendationMin: userData.caffeineRecommendationMin,
-          caffeineRecommendationMax: userData.caffeineRecommendationMax,
-          isTryingToReduce: userData.coffeeConsumption?.isTryingToReduce,
-          isMotivation: userData.isMotivation,
-          selfDescription: userData.coffeeConsumption?.selfDescription,
-          activityLevel: userData.activityLevel,
+          averageCaffeinePerDay, // ✅ זה המשתנה שתיקנת למעלה
+          sleepDurationAverage: coffeeData?.sleepDurationAverage || 0,
+          workDurationAverage: coffeeData?.workDurationAverage || 0,
+          caffeineRecommendationMin: userData.caffeineRecommendationMin || 0,
+          caffeineRecommendationMax: userData.caffeineRecommendationMax || 0,
+          isTryingToReduce: coffeeData?.isTryingToReduce === "yes",
+          isMotivation: userData.isMotivation ?? false,
+          selfDescription: coffeeData?.selfDescription || "",
+          activityLevel: userData.activityLevel || "None",
         });
 
-        setAiMessage(aiText);
+        // const aiText = await analyzeInitialPattern({
+        //   age: userData.age || 0,
+        //   averageCaffeinePerDay,
+        //   sleepDurationAverage:
+        //     userData.coffeeConsumption?.sleepDurationAverage || 0,
+        //   workDurationAverage:
+        //     userData.coffeeConsumption?.workDurationAverage || 0,
+        //   caffeineRecommendationMin: userData.caffeineRecommendationMin || 0,
+        //   caffeineRecommendationMax: userData.caffeineRecommendationMax || 0,
+        //   isTryingToReduce:
+        //     userData.coffeeConsumption?.isTryingToReduce === "yes",
+        //   isMotivation: userData.isMotivation ?? false,
+        //   selfDescription: userData.coffeeConsumption?.selfDescription || "",
+        //   activityLevel: userData.activityLevel || "None",
+        // });
+
+        // setAiMessage(aiText);
         setCaffeineMin(caffeineMin);
         setCaffeineMax(caffeineMax);
         setCaffeine(finalCaffeine);
@@ -63,15 +81,15 @@ export default function CoffeeScreen() {
           setIsFilled(true);
         }
         const aiResponse = await axios.get(
-          `http://localhost:5000/api/auth/get-insights/${userId}`
+          `http://172.20.10.10:5000/api/auth/get-insights/${userId}`
+          // `http://localhost:5000/api/auth/get-insights/${userId}`
         );
         setInsights(aiResponse.data.insights);
         setRecommendations(aiResponse.data.recommendations);
 
         console.log("🔥 AI Response:", aiResponse.data);
-
       } catch (error) {
-        console.error("שגיאה בשליפת נתוני coffeeConsumption:", error);
+        // console.error("שגיאה בשליפת נתוני coffeeConsumption:", error);
         setAiMessage("⚠️ לא הצלחנו לבצע ניתוח כרגע.");
       }
     };
@@ -124,7 +142,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: "bold",
+    // fontWeight: "bold",
     marginBottom: 30,
   },
   button: {

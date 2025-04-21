@@ -1,134 +1,201 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { Dropdown } from "react-native-element-dropdown";
+import RadioGroup from "react-native-radio-buttons-group";
 import {
   View,
   Text,
   TextInput,
   Button,
   StyleSheet,
-  SafeAreaView,
+  ScrollView,
 } from "react-native";
-// import { Slider } from "react-native-elements";
+import YesCoffeeToday from "./YesCoffeeToday";
+import NoCoffeeToday from "./NoCoffeeToday";
 
 export default function Create() {
-  const [amount, setAmount] = useState("");
-  const [tiredness, setTiredness] = useState(5);
-  const [focus, setFocus] = useState(5);
-  const [mood, setMood] = useState(5);
-  const [reason, setReason] = useState("");
+  const [sleepFromHour, setSleepFromHour] = useState(null);
+  const [sleepToHour, setSleepToHour] = useState(null);
 
-  const submitDataToAPI = () => {
-    const data = {
-      amount,
-      tiredness,
-      focus,
-      mood,
-      reason,
-      timestamp: new Date().toISOString(),
+  const [mood, setMood] = useState(null);
+  const [focusLevel, setFocusLevel] = useState(null);
+  const [tirednessLevel, setTirednessLevel] = useState(null);
+  const [isDrinking, setIsDrinking] = useState(null);
+  const ratingOptions = [
+    { label: "נמוך", value: 1 },
+    { label: "בינוני", value: 2 },
+    { label: "גבוה", value: 3 },
+  ];
+
+  const hoursOptions = Array.from({ length: 24 * 2 }, (_, i) => {
+    const hour = Math.floor(i / 2);
+    const minutes = (i % 2) * 30;
+    return {
+      label: `${hour.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`,
+      value: hour + minutes / 60,
     };
+  });
 
-    // שליחה לשרת (תעדכני את הכתובת בהתאם)
-    fetch("https://your-api-url.com/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-      .then(() => alert("המידע נשלח בהצלחה!"))
-      .catch((err) => alert("שגיאה בשליחה: " + err));
+  const [radioButtons, setRadioButtons] = useState([
+    { id: "yes", label: "כן", value: "yes" },
+    { id: "no", label: "לא", value: "no" },
+  ]);
+
+  const calculateDuration = (start, end) => {
+    if (start == null || end == null) return 0;
+    return end >= start ? end - start : 24 - start + end;
   };
 
+  const sleepDurationAverage = useMemo(
+    () => calculateDuration(sleepFromHour, sleepToHour),
+    [sleepFromHour, sleepToHour]
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>✍️ Create – איסוף מידע</Text>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <Text style={styles.title}>סקירת הקפה היומי</Text>
+        <Text>כמה שעות ישנת היום?</Text>
+        <View style={styles.sleepTimeRow}>
+          <Dropdown
+            style={[styles.dropdown, styles.sleepDropdown]}
+            data={hoursOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="עד שעה"
+            value={sleepToHour}
+            onChange={(item) => {
+              setSleepToHour(item.value);
+            }}
+            placeholderStyle={styles.placeholderText}
+            selectedTextStyle={styles.selectedText}
+          />
+          <Dropdown
+            style={[styles.dropdown, styles.sleepDropdown]}
+            data={hoursOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="משעה"
+            value={sleepFromHour}
+            onChange={(item) => {
+              setSleepFromHour(item.value);
+            }}
+            placeholderStyle={styles.placeholderText}
+            selectedTextStyle={styles.selectedText}
+          />
+        </View>
+        <Text style={styles.label}>מה מצב הרוח שלך היום?</Text>
+        <Dropdown
+          style={styles.dropdown}
+          data={ratingOptions}
+          labelField="label"
+          valueField="value"
+          placeholder="בחרי מצב רוח"
+          value={mood}
+          onChange={(item) => setMood(item.value)}
+          placeholderStyle={styles.placeholderText}
+          selectedTextStyle={styles.selectedText}
+        />
+        <Text style={styles.label}>מה רמת הריכוז שלך היום?</Text>
+        <Dropdown
+          style={styles.dropdown}
+          data={ratingOptions}
+          labelField="label"
+          valueField="value"
+          placeholder="בחרי רמת ריכוז"
+          value={focusLevel}
+          onChange={(item) => setFocusLevel(item.value)}
+          placeholderStyle={styles.placeholderText}
+          selectedTextStyle={styles.selectedText}
+        />
 
-      <Text style={styles.label}>כמה שתית? (במ"ל)</Text>
-      <TextInput
-        style={styles.input}
-        keyboardType="numeric"
-        value={amount}
-        onChangeText={setAmount}
-        placeholder="לדוגמה: 250"
-      />
-
-      <Text style={styles.label}>דרגי עייפות</Text>
-{/* 
-      <Slider
-        value={mood}
-        onValueChange={setMood}
-        maximumValue={10}
-        minimumValue={0}
-        step={1}
-      /> */}
-      <Text style={styles.label}>דרגי ריכוז</Text>
-
-      {/* <Slider
-        value={mood}
-        onValueChange={setMood}
-        maximumValue={10}
-        minimumValue={0}
-        step={1}
-      /> */}
-      <Text style={styles.label}>דרגי מצב רוח</Text>
-
-      {/* <Slider
-        value={mood}
-        onValueChange={setMood}
-        maximumValue={10}
-        minimumValue={0}
-        step={1}
-      /> */}
-
-      <Text style={styles.label}>למה שתית עכשיו?</Text>
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        multiline
-        value={reason}
-        onChangeText={setReason}
-        placeholder="שתיתי כי..."
-      />
-
-      <View style={styles.button}>
-        <Button title="שלח" onPress={submitDataToAPI} />
+        <Text style={styles.label}>מה רמת העייפות שלך היום?</Text>
+        <Dropdown
+          style={styles.dropdown}
+          data={ratingOptions}
+          labelField="label"
+          valueField="value"
+          placeholder="בחרי רמת עייפות"
+          value={tirednessLevel}
+          onChange={(item) => setTirednessLevel(item.value)}
+          placeholderStyle={styles.placeholderText}
+          selectedTextStyle={styles.selectedText}
+        />
+        <Text>האם שתית קפה היום?</Text>
+        <RadioGroup
+          radioButtons={radioButtons}
+          onPress={(selectedId) => {
+            setIsDrinking(selectedId);
+          }}
+          selectedId={isDrinking}
+          layout="row"
+        />
+        {isDrinking === "yes" && <YesCoffeeToday />}
+        {isDrinking === "no" && <NoCoffeeToday />}
+        <Button
+          title="שליחה"
+          color="#4CAF50"
+          onPress={() => {
+            // פעולה שתבצעי כשמשתמשת לוחצת (לדוגמה שמירה או מעבר)
+            console.log("התחלת מעקב יומי");
+          }}
+        />
       </View>
-    </SafeAreaView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: { flexGrow: 1, paddingBottom: 20 },
   container: {
     flex: 1,
-    // backgroundColor: "#1c1c1c",
+    alignItems: "flex-start",
     padding: 20,
+    gap: 8,
+    flexDirection: "column",
+    alignItems: "stretch",
   },
   title: {
     fontSize: 24,
     fontWeight: "600",
     marginBottom: 20,
     textAlign: "center",
-    // color: "black"
   },
   label: {
     fontSize: 16,
     marginTop: 12,
     marginBottom: 4,
-    // color: "white"
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 12,
-    padding: 10,
-    fontSize: 16,
-    // color: "white"
-  },
-  slider: {
-    width: "100%",
-    height: 40,
-    // color: "white"
   },
   button: {
     marginTop: 24,
     borderRadius: 12,
     overflow: "hidden",
-    // color: "white"
+  },
+  sleepDropdown: {
+    flex: 1,
+  },
+  dropdown: {
+    height: 50,
+    borderColor: "gray",
+    borderWidth: 0.5,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    marginBottom: 15,
+    width: "100%",
+  },
+  sleepTimeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+    marginBottom: 15,
+  },
+  placeholderText: {
+    textAlign: "right",
+    color: "#999",
+  },
+  selectedText: {
+    textAlign: "right",
+    color: "#333",
   },
 });
