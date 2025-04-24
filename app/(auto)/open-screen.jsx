@@ -16,8 +16,7 @@ export default function OpenScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>ברוכים הבאים ל-DeCoffee ☕</Text>
-      <Text style={styles.subtitle}>בחרו אפשרות:</Text>
+      <Text style={styles.title}>ברוכים הבאים ל-DeCoffee</Text>
       <TouchableOpacity
         style={styles.button}
         onPress={() => router.push("/login")} // ✅ תוקן

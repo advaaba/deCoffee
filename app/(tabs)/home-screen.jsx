@@ -96,34 +96,39 @@ export default function HomeScreen() {
     );
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {user ? (
-        <>
-          <Text style={styles.title}>שלום, {user.firstName} 👋</Text>
-          <Text style={styles.text}>ברוכה הבאה ל־DeCoffee 🌿</Text>
-          <Text style={styles.text}>
-            האפליקצייה שתעזור לך לעקוב אחרי הרגלי שתיית הקפה שלך, להבין איך
-            קפאין משפיע עלייך ולבנות הרגלים שמתאימים לך אישית
-          </Text>
-          <View style={styles.section}>
-            <Text style={styles.subTitle}>📊 מצב יומי:</Text>
+    <View>
+      <ScrollView contentContainerStyle={styles.container}>
+        {user ? (
+          <>
+            <Text style={styles.title}>שלום, {user.firstName} 👋</Text>
+            <Text style={styles.text}>ברוכה הבאה ל־DeCoffee 🌿</Text>
             <Text style={styles.text}>
-              עוד לא התחלת לעקוב אחרי הקפה שלך היום.
+              האפליקצייה שתעזור לך לעקוב אחרי הרגלי שתיית הקפה שלך, להבין איך
+              קפאין משפיע עלייך ולבנות הרגלים שמתאימים לך אישית
             </Text>
-            <TouchableOpacity onPress={handleLogout} style={styles.backLink}>
+            <View style={styles.section}>
+              <Text style={styles.subTitle}>📊 מצב יומי:</Text>
+              <Text style={styles.text}>
+                עוד לא התחלת לעקוב אחרי הקפה שלך היום.
+              </Text>
+              {/* <TouchableOpacity onPress={handleLogout} style={styles.backLink}>
               <Text style={styles.linkText}>התנתקות מהחשבון</Text>
-            </TouchableOpacity>
-          </View>
-          <Button
-            title="התחילי מעקב יומי"
-            onPress={() => router.push("/create")}
-            color="#4CAF50"
-          />
-        </>
-      ) : (
-        <Text style={styles.text}>לא נמצאו נתוני משתמש.</Text>
-      )}
-    </ScrollView>
+            </TouchableOpacity> */}
+            </View>
+            <Button
+              title="התחילי מעקב יומי"
+              onPress={() => router.push("/create")}
+              color="#4CAF50"
+            />
+          </>
+        ) : (
+          <Text style={styles.text}>לא נמצאו נתוני משתמש.</Text>
+        )}
+      </ScrollView>
+      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+        <Text style={styles.linkText}>התנתקות מהחשבון</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -161,4 +166,10 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
     fontSize: 16,
   },
+  logoutButton: {
+    position: "absolute",
+    bottom: 0,
+    left: 20,
+  },
+  
 });

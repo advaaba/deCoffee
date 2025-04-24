@@ -1,13 +1,89 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, ScrollView, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  StyleSheet,
+  Button,
+} from "react-native";
 import RadioGroup from "react-native-radio-buttons-group";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
+import axios from "axios";
+import { useRouter } from "expo-router";
 
 export default function YesCoffeeToday() {
+  const router = useRouter();
+  const [cups, setCups] = useState("");
+  const [coffeeType, setCoffeeType] = useState("");
+  const [timesDrank, setTimesDrank] = useState("");
+  const [reason, setReason] = useState("");
+  const [feltEffect, setFeltEffect] = useState(null);
+  const [specialNeed, setSpecialNeed] = useState(null);
+  const [consideredReducing, setConsideredReducing] = useState(null);
+  const [wantToReduceTomorrow, setWantToReduceTomorrow] = useState(null);
+  const [consumptionTime, setConsumptionTime] = useState([]);
+  const [servingSizesByType, setServingSizesByType] = useState({});
+  const [coffeeTypesFromDb, setCoffeeTypesFromDb] = useState([]);
+  const [coffeeData, setCoffeeData] = useState({
+    coffeeType: [],
+    consumptionTime: [],
+    cupsPerDay: null,
+  });
+
+  const [formData, setFormData] = useState({});
+
+  useEffect(() => {
+    const fetchCoffeeTypes = async () => {
+      try {
+        // const response = await axios.get("http://localhost:5000/api/drinks");
+        const response = await axios.get("http://172.20.10.10:5000/api/drinks");
+        setCoffeeTypesFromDb(response.data); // שומרת את כל המידע
+      } catch (error) {
+        console.error("❌ שגיאה בשליפת סוגי הקפה:", error.message);
+      }
+    };
+
+    fetchCoffeeTypes();
+  }, []);
+
+  useEffect(() => {
+    const data = {
+      cups,
+      coffeeType: coffeeData.coffeeType,
+      consumptionTime,
+      reason,
+      feltEffect,
+      specialNeed,
+      consideredReducing,
+      wantToReduceTomorrow,
+    };
+
+    onDataChange && onDataChange(data);
+  }, [
+    cups,
+    coffeeData,
+    consumptionTime,
+    reason,
+    feltEffect,
+    specialNeed,
+    consideredReducing,
+    wantToReduceTomorrow,
+  ]);
+
   const yesNoOptions = [
     { id: "yes", label: "כן", value: "yes" },
     { id: "no", label: "לא", value: "no" },
   ];
+
+  const handleInputChange = (key, value) => {
+    setCoffeeData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const coffeeOptions = coffeeTypesFromDb.map((drink) => ({
+    label: drink.name,
+    value: drink.value,
+  }));
 
   const coffeeConsumption = Array.from({ length: 11 }, (_, i) => ({
     label: `כוסות ${i}`,
@@ -21,15 +97,10 @@ export default function YesCoffeeToday() {
     { label: "לילה", value: "night" },
   ];
 
-  const [cups, setCups] = useState("");
-  const [coffeeType, setCoffeeType] = useState("");
-  const [timesDrank, setTimesDrank] = useState("");
-  const [reason, setReason] = useState("");
-  const [feltEffect, setFeltEffect] = useState(null);
-  const [specialNeed, setSpecialNeed] = useState(null);
-  const [consideredReducing, setConsideredReducing] = useState(null);
-  const [wantToReduceTomorrow, setWantToReduceTomorrow] = useState(null);
-  const [consumptionTime, setConsumptionTime] = useState([]);
+  const handleContinue = () => {
+    console.log(formData);
+    router.push({ pathname: "/create", params: formData });
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -51,11 +122,35 @@ export default function YesCoffeeToday() {
       />
 
       <Text style={styles.label}>איזה סוג קפה שתית?</Text>
-      <TextInput
-        style={styles.input}
-        value={coffeeType}
-        onChangeText={setCoffeeType}
-        placeholder="לדוג' אספרסו, נס, מקיאטו..."
+      <MultiSelect
+        style={[styles.dropdown]}
+        data={coffeeOptions}
+        labelField="label"
+        valueField="value"
+        placeholder="בחר סוגי קפה"
+        value={coffeeData.coffeeType}
+        onChange={(selectedTypes) => {
+          handleInputChange("coffeeType", selectedTypes);
+
+          // יוצרים map חדש של serving sizes לפי סוגים שנבחרו
+          const newServingMap = {};
+          selectedTypes.forEach((type) => {
+            newServingMap[type] = servingSizesByType[type] || null;
+          });
+          setServingSizesByType(newServingMap);
+        }}
+        placeholderStyle={styles.placeholderText}
+        selectedTextStyle={styles.selectedText}
+        selectedStyle={{
+          flexDirection: "row-reverse",
+          justifyContent: "flex-end",
+          alignItems: "center",
+        }}
+        itemTextStyle={{
+          textAlign: "right",
+          textDirection: "rtl",
+        }}
+        containerStyle={{ direction: "rtl" }}
       />
 
       <Text style={styles.label}>באילו שעות שתית קפה?</Text>
@@ -124,6 +219,7 @@ export default function YesCoffeeToday() {
         selectedId={wantToReduceTomorrow}
         layout="row"
       />
+      <Button title="שליחה" color="#4CAF50" onPress={handleContinue} />
     </ScrollView>
   );
 }
@@ -164,5 +260,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     marginBottom: 15,
     width: "100%",
+    textAlign: "right",
+    fontSize: 16,
+    color: "gray",
+  },
+  placeholderText: {
+    textAlign: "right",
+    color: "#999",
+  },
+  selectedText: {
+    textAlign: "right",
+    color: "#333",
   },
 });

@@ -4,7 +4,7 @@ import RadioGroup from "react-native-radio-buttons-group";
 import {
   View,
   Text,
-  TextInput,
+  Input,
   Button,
   StyleSheet,
   ScrollView,
@@ -20,6 +20,9 @@ export default function Create() {
   const [focusLevel, setFocusLevel] = useState(null);
   const [tirednessLevel, setTirednessLevel] = useState(null);
   const [isDrinking, setIsDrinking] = useState(null);
+  const [yesCoffeeData, setYesCoffeeData] = useState(null);
+  const [noCoffeeData, setNoCoffeeData] = useState(null);
+
   const ratingOptions = [
     { label: "נמוך", value: 1 },
     { label: "בינוני", value: 2 },
@@ -51,6 +54,29 @@ export default function Create() {
     () => calculateDuration(sleepFromHour, sleepToHour),
     [sleepFromHour, sleepToHour]
   );
+
+  const handleSubmit = async () => {
+    const userId = await AsyncStorage.getItem("userId");
+    const finalData = {
+      userId,
+      date: new Date().toISOString().split("T")[0],
+      sleepHours: sleepDurationAverage,
+      mood,
+      focusLevel,
+      tirednessLevel,
+      drankCoffee: isDrinking === "yes",
+      coffeeDetails: yesCoffeeData,
+      noCoffeeDetails: noCoffeeData,
+    };
+
+    try {
+      await axios.post("http://YOUR_SERVER/api/daily", finalData);
+      Alert.alert("הצלחה", "הנתונים נשמרו בהצלחה!");
+    } catch (err) {
+      console.error("שגיאה בשליחה:", err);
+      Alert.alert("שגיאה", "משהו השתבש בשמירה.");
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -131,17 +157,14 @@ export default function Create() {
           selectedId={isDrinking}
           layout="row"
         />
-        {isDrinking === "yes" && <YesCoffeeToday />}
-        {isDrinking === "no" && <NoCoffeeToday />}
-        <Button
-          title="שליחה"
-          color="#4CAF50"
-          onPress={() => {
-            // פעולה שתבצעי כשמשתמשת לוחצת (לדוגמה שמירה או מעבר)
-            console.log("התחלת מעקב יומי");
-          }}
-        />
+        {isDrinking === "yes" && (
+          <YesCoffeeToday onDataChange={setYesCoffeeData} />
+        )}
+        {isDrinking === "no" && (
+          <NoCoffeeToday onDataChange={setNoCoffeeData} />
+        )}
       </View>
+      <Button title="שמור הכל" color="#4CAF50" onPress={handleSubmit} />
     </ScrollView>
   );
 }

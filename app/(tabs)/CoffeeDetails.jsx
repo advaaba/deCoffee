@@ -282,13 +282,13 @@ const CoffeeDetails = () => {
     });
     setErrors({});
   };
+  
   // מוטיבציה
   const handleImportanceChange = (item) => {
     setImportanceLevel(item.value);
     setIsMotivation(item.value >= 3);
   };
 
-  //הרשמה
   const handleRegister = async () => {
     console.log("its clicked");
     const hasErrors = checkValidate();
