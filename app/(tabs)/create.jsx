@@ -8,9 +8,14 @@ import {
   Button,
   StyleSheet,
   ScrollView,
+  Alert,
 } from "react-native";
 import YesCoffeeToday from "./YesCoffeeToday";
 import NoCoffeeToday from "./NoCoffeeToday";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import MoodSelector from "./MoodSelector";
 
 export default function Create() {
   const [sleepFromHour, setSleepFromHour] = useState(null);
@@ -22,11 +27,14 @@ export default function Create() {
   const [isDrinking, setIsDrinking] = useState(null);
   const [yesCoffeeData, setYesCoffeeData] = useState(null);
   const [noCoffeeData, setNoCoffeeData] = useState(null);
+  const params = useLocalSearchParams();
 
   const ratingOptions = [
-    { label: "נמוך", value: 1 },
-    { label: "בינוני", value: 2 },
-    { label: "גבוה", value: 3 },
+    { id: "great", label: "מצוין" },
+    { id: "good", label: "טוב" },
+    { id: "okay", label: "בסדר" },
+    { id: "bad", label: "רע" },
+    { id: "terrible", label: "נורא" },
   ];
 
   const hoursOptions = Array.from({ length: 24 * 2 }, (_, i) => {
@@ -56,6 +64,7 @@ export default function Create() {
   );
 
   const handleSubmit = async () => {
+    console.log(params);
     const userId = await AsyncStorage.getItem("userId");
     const finalData = {
       userId,
@@ -70,10 +79,14 @@ export default function Create() {
     };
 
     try {
-      await axios.post("http://YOUR_SERVER/api/daily", finalData);
+      const response = await axios.post(
+        "http://172.20.10.10:5000/api/dailyData",
+        finalData
+      );
+      console.log("✅ שליחה הצליחה:", response.data);
       Alert.alert("הצלחה", "הנתונים נשמרו בהצלחה!");
     } catch (err) {
-      console.error("שגיאה בשליחה:", err);
+      console.error("❌ שגיאה בשליחה:", err);
       Alert.alert("שגיאה", "משהו השתבש בשמירה.");
     }
   };
@@ -111,7 +124,7 @@ export default function Create() {
             selectedTextStyle={styles.selectedText}
           />
         </View>
-        <Text style={styles.label}>מה מצב הרוח שלך היום?</Text>
+        {/* <Text style={styles.label}>מה מצב הרוח שלך היום?</Text>
         <Dropdown
           style={styles.dropdown}
           data={ratingOptions}
@@ -122,7 +135,8 @@ export default function Create() {
           onChange={(item) => setMood(item.value)}
           placeholderStyle={styles.placeholderText}
           selectedTextStyle={styles.selectedText}
-        />
+        /> */}
+        <MoodSelector onMoodSelect={(selectedMood) => setMood(selectedMood)} />
         <Text style={styles.label}>מה רמת הריכוז שלך היום?</Text>
         <Dropdown
           style={styles.dropdown}
@@ -163,8 +177,8 @@ export default function Create() {
         {isDrinking === "no" && (
           <NoCoffeeToday onDataChange={setNoCoffeeData} />
         )}
+        <Button title="שמור הכל" color="#4CAF50" onPress={handleSubmit} />
       </View>
-      <Button title="שמור הכל" color="#4CAF50" onPress={handleSubmit} />
     </ScrollView>
   );
 }

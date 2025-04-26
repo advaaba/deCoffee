@@ -5,6 +5,7 @@ const cors = require('cors');
 const config = require('./config');
 const authRoutes = require('./routes/authRoutes');
 const drinkRoutes = require("./routes/drinkRoutes");
+const dailyDataRoutes = require("./routes/dailyDataRoutes");
 const notificationsRoutes = require("./routes/notifications");
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 // שימוש בנתיבים
 app.use('/api/auth', authRoutes);
 app.use("/api/drinks", drinkRoutes);
+app.use("/api/dailyData", dailyDataRoutes);
 app.use("/api/notifications", notificationsRoutes);
 
 // בדיקת חיבור לשרת

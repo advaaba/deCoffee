@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 import RadioGroup from "react-native-radio-buttons-group";
 import { useRouter } from "expo-router";
 
-export default function NoCoffeeToday() {
+export default function NoCoffeeToday({ onDataChange }) {
   const router = useRouter();
   const [feltWithoutCoffee, setFeltWithoutCoffee] = useState("");
   const [consideredDrinking, setConsideredDrinking] = useState(null);
@@ -35,18 +35,46 @@ export default function NoCoffeeToday() {
       willDrinkTomorrow,
       wantToContinueNoCoffee,
     };
-  
+
     onDataChange && onDataChange(data);
-  }, [feltWithoutCoffee, consideredDrinking, consideredDrinkingReason, willDrinkLater, willDrinkLaterReason, reasonNotDrinking, consciousDecision, willDrinkTomorrow, wantToContinueNoCoffee]);
-  
+  }, [
+    feltWithoutCoffee,
+    consideredDrinking,
+    consideredDrinkingReason,
+    willDrinkLater,
+    willDrinkLaterReason,
+    reasonNotDrinking,
+    consciousDecision,
+    willDrinkTomorrow,
+    wantToContinueNoCoffee,
+  ]);
+
   const yesNoOptions = [
     { id: "yes", label: "כן", value: "yes" },
     { id: "no", label: "לא", value: "no" },
   ];
 
+  const yesNoMaybeOptions = [
+    { id: "yes", label: "כן", value: "yes" },
+    { id: "no", label: "לא", value: "no" },
+    { id: "don't know", label: "לא יודע/ת", value: "don't know" },
+  ];
+
   const handleContinue = () => {
-    console.log(formData);
-    router.push({ pathname: "/create", params: formData }); 
+    const data = {
+      feltWithoutCoffee,
+      consideredDrinking,
+      consideredDrinkingReason,
+      willDrinkLater,
+      willDrinkLaterReason,
+      reasonNotDrinking,
+      consciousDecision,
+      willDrinkTomorrow,
+      wantToContinueNoCoffee,
+    };
+
+    console.log(data); // לראות שהכל נכון
+    router.push({ pathname: "/create", params: data });
   };
 
   return (
@@ -82,9 +110,9 @@ export default function NoCoffeeToday() {
         </View>
       )}
 
-      <Text style={styles.label}>האם תשתה קפה עוד היום לדעתך?</Text>
+      <Text style={styles.label}>האם תשתה קפה היום לדעתך?</Text>
       <RadioGroup
-        radioButtons={yesNoOptions}
+        radioButtons={yesNoMaybeOptions}
         onPress={setWillDrinkLater}
         selectedId={willDrinkLater}
         layout="row"
@@ -120,7 +148,7 @@ export default function NoCoffeeToday() {
 
       <Text style={styles.label}>האם לדעתך תשתה קפה מחר?</Text>
       <RadioGroup
-        radioButtons={yesNoOptions}
+        radioButtons={yesNoMaybeOptions}
         onPress={setWillDrinkTomorrow}
         selectedId={willDrinkTomorrow}
         layout="row"

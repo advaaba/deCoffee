@@ -75,7 +75,7 @@ export default function HomeScreen() {
             try {
               await AsyncStorage.removeItem("userToken");
               await AsyncStorage.removeItem("userId");
-              router.replace("/open-screen");
+              router.replace("/auto/open-screen");
             } catch (error) {
               console.error("❌ שגיאה בהתנתקות:", error);
             }

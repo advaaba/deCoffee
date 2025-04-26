@@ -12,7 +12,7 @@ import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 import axios from "axios";
 import { useRouter } from "expo-router";
 
-export default function YesCoffeeToday() {
+export default function YesCoffeeToday({ onDataChange }) {
   const router = useRouter();
   const [cups, setCups] = useState("");
   const [coffeeType, setCoffeeType] = useState("");
@@ -25,6 +25,7 @@ export default function YesCoffeeToday() {
   const [consumptionTime, setConsumptionTime] = useState([]);
   const [servingSizesByType, setServingSizesByType] = useState({});
   const [coffeeTypesFromDb, setCoffeeTypesFromDb] = useState([]);
+  const [specialNeedReason, setSpecialNeedReason] = useState("");
   const [coffeeData, setCoffeeData] = useState({
     coffeeType: [],
     consumptionTime: [],
@@ -57,6 +58,7 @@ export default function YesCoffeeToday() {
       specialNeed,
       consideredReducing,
       wantToReduceTomorrow,
+      specialNeedReason,
     };
 
     onDataChange && onDataChange(data);
@@ -69,11 +71,18 @@ export default function YesCoffeeToday() {
     specialNeed,
     consideredReducing,
     wantToReduceTomorrow,
+    specialNeedReason
   ]);
 
   const yesNoOptions = [
     { id: "yes", label: "כן", value: "yes" },
     { id: "no", label: "לא", value: "no" },
+  ];
+
+  const yesNoMaybeOptions = [
+    { id: "yes", label: "כן", value: "yes" },
+    { id: "no", label: "לא", value: "no" },
+    { id: "don't know", label: "לא יודע/ת", value: "don't know" },
   ];
 
   const handleInputChange = (key, value) => {
@@ -85,10 +94,11 @@ export default function YesCoffeeToday() {
     value: drink.value,
   }));
 
-  const coffeeConsumption = Array.from({ length: 11 }, (_, i) => ({
-    label: `כוסות ${i}`,
-    value: i,
+  const coffeeConsumption = Array.from({ length: 10 }, (_, i) => ({
+    label: `כוסות ${i + 1}`,
+    value: i + 1,
   }));
+  
 
   const timesPerDay = [
     { label: "בוקר", value: "Morning" },
@@ -98,10 +108,22 @@ export default function YesCoffeeToday() {
   ];
 
   const handleContinue = () => {
-    console.log(formData);
-    router.push({ pathname: "/create", params: formData });
+    const data = {
+      cups,
+      coffeeType: coffeeData.coffeeType,
+      consumptionTime,
+      reason,
+      feltEffect,
+      specialNeed,
+      consideredReducing,
+      wantToReduceTomorrow,
+      specialNeedReason,
+    };
+  
+    console.log(data); // לראות שהנתונים תקינים
+    router.push({ pathname: "/create", params: data });
   };
-
+  
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>
@@ -203,6 +225,18 @@ export default function YesCoffeeToday() {
         selectedId={specialNeed}
         layout="row"
       />
+      {specialNeed === "yes" && (
+        <View>
+          <Text style={styles.label}>כתוב את סיבת הצורך:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="כתב/י את הסיבה"
+            value={specialNeedReason}
+            onChangeText={setSpecialNeedReason}
+            multiline
+          />
+        </View>
+      )}
 
       <Text style={styles.label}>האם שקלת להפחית את צריכת הקפה היום?</Text>
       <RadioGroup
@@ -214,7 +248,7 @@ export default function YesCoffeeToday() {
 
       <Text style={styles.label}>האם תרצה לשתות קפה פחות מחר?</Text>
       <RadioGroup
-        radioButtons={yesNoOptions}
+        radioButtons={yesNoMaybeOptions}
         onPress={setWantToReduceTomorrow}
         selectedId={wantToReduceTomorrow}
         layout="row"
