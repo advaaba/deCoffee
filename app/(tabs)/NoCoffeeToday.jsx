@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -35,8 +35,44 @@ export default function NoCoffeeToday({ onDataChange }) {
       willDrinkTomorrow,
       wantToContinueNoCoffee,
     };
+  
+    const isValid = feltWithoutCoffee.trim() !== "" &&
+      consideredDrinking &&
+      (consideredDrinking !== "yes" || consideredDrinkingReason.trim() !== "") &&
+      willDrinkLater &&
+      (willDrinkLater !== "yes" || willDrinkLaterReason.trim() !== "") &&
+      reasonNotDrinking.trim() !== "" &&
+      consciousDecision &&
+      willDrinkTomorrow &&
+      wantToContinueNoCoffee;
+  
+    onDataChange && onDataChange({ data, isValid });
+  }, [
+    feltWithoutCoffee,
+    consideredDrinking,
+    consideredDrinkingReason,
+    willDrinkLater,
+    willDrinkLaterReason,
+    reasonNotDrinking,
+    consciousDecision,
+    willDrinkTomorrow,
+    wantToContinueNoCoffee,
+  ]);
+  
 
-    onDataChange && onDataChange(data);
+  const isFormValid = useMemo(() => {
+    return (
+      feltWithoutCoffee.trim() !== "" &&
+      consideredDrinking &&
+      (consideredDrinking !== "yes" ||
+        consideredDrinkingReason.trim() !== "") &&
+      willDrinkLater &&
+      (willDrinkLater !== "yes" || willDrinkLaterReason.trim() !== "") &&
+      reasonNotDrinking.trim() !== "" &&
+      consciousDecision &&
+      willDrinkTomorrow &&
+      wantToContinueNoCoffee
+    );
   }, [
     feltWithoutCoffee,
     consideredDrinking,
@@ -163,7 +199,12 @@ export default function NoCoffeeToday({ onDataChange }) {
         selectedId={wantToContinueNoCoffee}
         layout="row"
       />
-      <Button title="שליחה" color="#4CAF50" onPress={handleContinue} />
+      <Button
+        title="שליחה"
+        color="#4CAF50"
+        onPress={handleContinue}
+        disabled={!isFormValid}
+      />
     </ScrollView>
   );
 }

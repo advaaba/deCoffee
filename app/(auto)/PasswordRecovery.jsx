@@ -8,20 +8,36 @@ import {
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
+import axios from "axios";
 
 export default function PasswordRecovery() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [userId, setUerId] = useState("");
 
-  const handlePasswordReset = () => {
-    if (!email) {
-      Alert.alert("⚠️ שגיאה", "נא להזין כתובת אימייל תקינה.");
+  const handlePasswordResetRequest = async () => {
+    if (!email || !userId) {
+      Alert.alert("⚠️ שגיאה", "אנא מלאי גם אימייל וגם תעודת זהות.");
       return;
     }
 
-    // כאן תשלחי את ה־email ל־backend שלך
-    Alert.alert("📨 אם כתובתך קיימת במערכת – מייל נשלח.");
-    router.back(); // חזרה למסך הקודם
+    try {
+      // שליחה לשרת לבדיקה אם אימייל ות"ז קיימים
+      const response = await axios.post("http://172.20.10.10:5000/api/auth/checkUser", { email, userId });
+
+      if (response.data.success) {
+        Alert.alert("✅ נמצא משתמש", "מעבר לאיפוס סיסמה.");
+        router.push({
+          pathname: "/PasswordChange",
+          params: { email }, // שולחים את האימייל איתנו למסך הבא
+        });
+      } else {
+        Alert.alert("❌ שגיאה", "לא נמצא משתמש עם הפרטים שהוזנו.");
+      }
+    } catch (error) {
+      console.error("שגיאה באימות:", error);
+      Alert.alert("⚠️ שגיאה", "אירעה שגיאה בבדיקה. נסה שוב מאוחר יותר.");
+    }
   };
 
   return (
@@ -37,10 +53,17 @@ export default function PasswordRecovery() {
         autoCapitalize="none"
       />
 
-      <TouchableOpacity style={styles.button} onPress={handlePasswordReset}>
-        <Text style={styles.buttonText}>איפוס סיסמה</Text>
-      </TouchableOpacity>
+      <TextInput
+        style={styles.input}
+        placeholder="הכנס/י תעודת זהות"
+        value={userId}
+        onChangeText={setUerId}
+        keyboardType="numeric"
+      />
 
+      <TouchableOpacity style={styles.button} onPress={handlePasswordResetRequest}>
+        <Text style={styles.buttonText}>בדיקת פרטים</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -75,14 +98,5 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 18,
-  },
-  backLink: {
-    marginTop: 20,
-    alignItems: "center",
-  },
-  linkText: {
-    color: "#2196F3",
-    textDecorationLine: "underline",
-    fontSize: 16,
   },
 });

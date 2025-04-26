@@ -5,6 +5,8 @@ const {
   loginUser,
   updateCoffeeConsumption,
   getInsights,
+  checkUser,
+  resetPassword
 } = require('../controllers/authController');
 const User = require('../models/User');
 
@@ -52,5 +54,6 @@ router.put('/update-user/:userId', async (req, res) => {
 router.put('/update-coffee-consumption/:userId', updateCoffeeConsumption);
 // 📊 שליפת תובנות מהאלגוריתם
 router.get('/get-insights/:userId', getInsights);
-
+router.post('/checkUser', checkUser);
+router.post('/resetPassword', resetPassword);
 module.exports = router;

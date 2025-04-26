@@ -27,7 +27,25 @@ export default function Create() {
   const [isDrinking, setIsDrinking] = useState(null);
   const [yesCoffeeData, setYesCoffeeData] = useState(null);
   const [noCoffeeData, setNoCoffeeData] = useState(null);
+  const [yesCoffeeValid, setYesCoffeeValid] = useState(false);
+  const [noCoffeeValid, setNoCoffeeValid] = useState(false);
+
   const params = useLocalSearchParams();
+
+  useEffect(() => {
+    console.log("✅ עדכון yesCoffeeData:", yesCoffeeData);
+    console.log("✅ עדכון noCoffeeData:", noCoffeeData);
+  }, [yesCoffeeData, noCoffeeData]);
+
+  const calculateDuration = (start, end) => {
+    if (start == null || end == null) return 0;
+    return end >= start ? end - start : 24 - start + end;
+  };
+
+  const sleepDurationAverage = useMemo(
+    () => calculateDuration(sleepFromHour, sleepToHour),
+    [sleepFromHour, sleepToHour]
+  );
 
   const ratingOptions = [
     { id: "great", label: "מצוין" },
@@ -53,18 +71,28 @@ export default function Create() {
     { id: "no", label: "לא", value: "no" },
   ]);
 
-  const calculateDuration = (start, end) => {
-    if (start == null || end == null) return 0;
-    return end >= start ? end - start : 24 - start + end;
-  };
+  const isFormValid = useMemo(() => {
+    if (!sleepFromHour || !sleepToHour || sleepDurationAverage === 0)
+      return false;
+    if (!mood || !focusLevel || !tirednessLevel) return false;
 
-  const sleepDurationAverage = useMemo(
-    () => calculateDuration(sleepFromHour, sleepToHour),
-    [sleepFromHour, sleepToHour]
-  );
+    if (isDrinking === "yes" && !yesCoffeeValid) return false;
+    if (isDrinking === "no" && !noCoffeeValid) return false;
+
+    return true;
+  }, [
+    sleepFromHour,
+    sleepToHour,
+    sleepDurationAverage,
+    mood,
+    focusLevel,
+    tirednessLevel,
+    isDrinking,
+    yesCoffeeValid,
+    noCoffeeValid,
+  ]);
 
   const handleSubmit = async () => {
-    console.log(params);
     const userId = await AsyncStorage.getItem("userId");
     const finalData = {
       userId,
@@ -77,6 +105,14 @@ export default function Create() {
       coffeeDetails: yesCoffeeData,
       noCoffeeDetails: noCoffeeData,
     };
+
+    // 💥 בדיקה לפני השליחה
+    if (!userId || !isFormValid) {
+      console.log("אנא מלא את כל השדות לפני השליחה", finalData);
+      Alert.alert("שגיאה", "אנא מלאי את כל השדות לפני השליחה.");
+      return;
+    }
+    
 
     try {
       const response = await axios.post(
@@ -136,6 +172,7 @@ export default function Create() {
           placeholderStyle={styles.placeholderText}
           selectedTextStyle={styles.selectedText}
         /> */}
+
         <MoodSelector onMoodSelect={(selectedMood) => setMood(selectedMood)} />
         <Text style={styles.label}>מה רמת הריכוז שלך היום?</Text>
         <Dropdown
@@ -172,12 +209,30 @@ export default function Create() {
           layout="row"
         />
         {isDrinking === "yes" && (
-          <YesCoffeeToday onDataChange={setYesCoffeeData} />
+          <YesCoffeeToday
+            onDataChange={({ data, isValid }) => {
+              setYesCoffeeData(data);
+              setYesCoffeeValid(isValid);
+            }}
+          />
         )}
         {isDrinking === "no" && (
-          <NoCoffeeToday onDataChange={setNoCoffeeData} />
+          <NoCoffeeToday
+            onDataChange={({ data, isValid }) => {
+              setNoCoffeeData(data);
+              setNoCoffeeValid(isValid);
+            }}
+          />
         )}
-        <Button title="שמור הכל" color="#4CAF50" onPress={handleSubmit} />
+
+        <View style={{ opacity: isFormValid ? 1 : 0.5 }}>
+          <Button
+            title="שמור הכל"
+            color="#2196F3"
+            onPress={handleSubmit}
+            disabled={!isFormValid}
+          />
+        </View>
       </View>
     </ScrollView>
   );

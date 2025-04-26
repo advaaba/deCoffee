@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -61,7 +61,18 @@ export default function YesCoffeeToday({ onDataChange }) {
       specialNeedReason,
     };
 
-    onDataChange && onDataChange(data);
+    const isValid =
+      cups &&
+      coffeeData.coffeeType.length > 0 &&
+      consumptionTime.length > 0 &&
+      reason.trim() !== "" &&
+      feltEffect &&
+      specialNeed &&
+      consideredReducing &&
+      wantToReduceTomorrow &&
+      (specialNeed !== "yes" || specialNeedReason.trim() !== "");
+
+    onDataChange && onDataChange({ data, isValid });
   }, [
     cups,
     coffeeData,
@@ -71,7 +82,31 @@ export default function YesCoffeeToday({ onDataChange }) {
     specialNeed,
     consideredReducing,
     wantToReduceTomorrow,
-    specialNeedReason
+    specialNeedReason,
+  ]);
+
+  const isFormValid = useMemo(() => {
+    return (
+      cups &&
+      coffeeData.coffeeType.length > 0 &&
+      consumptionTime.length > 0 &&
+      reason.trim() !== "" &&
+      feltEffect &&
+      specialNeed &&
+      consideredReducing &&
+      wantToReduceTomorrow &&
+      (specialNeed !== "yes" || specialNeedReason.trim() !== "")
+    );
+  }, [
+    cups,
+    coffeeData,
+    consumptionTime,
+    reason,
+    feltEffect,
+    specialNeed,
+    consideredReducing,
+    wantToReduceTomorrow,
+    specialNeedReason,
   ]);
 
   const yesNoOptions = [
@@ -98,7 +133,6 @@ export default function YesCoffeeToday({ onDataChange }) {
     label: `כוסות ${i + 1}`,
     value: i + 1,
   }));
-  
 
   const timesPerDay = [
     { label: "בוקר", value: "Morning" },
@@ -119,11 +153,11 @@ export default function YesCoffeeToday({ onDataChange }) {
       wantToReduceTomorrow,
       specialNeedReason,
     };
-  
+
     console.log(data); // לראות שהנתונים תקינים
     router.push({ pathname: "/create", params: data });
   };
-  
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>
@@ -253,7 +287,12 @@ export default function YesCoffeeToday({ onDataChange }) {
         selectedId={wantToReduceTomorrow}
         layout="row"
       />
-      <Button title="שליחה" color="#4CAF50" onPress={handleContinue} />
+      <Button
+        title="שליחה"
+        color="#4CAF50"
+        onPress={handleContinue}
+        disabled={!isFormValid}
+      />
     </ScrollView>
   );
 }
