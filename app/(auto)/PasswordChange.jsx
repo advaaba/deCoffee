@@ -10,6 +10,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
+import BASE_URL from "../../utils/apiConfig";
 
 export default function PasswordChange() {
   const router = useRouter();
@@ -39,14 +40,7 @@ export default function PasswordChange() {
     }
 
     try {
-      const response = await axios.post(
-        "http://172.20.10.10:5000/api/auth/resetPassword",
-        {
-          email,
-          newPassword,
-        }
-      );
-
+      const response = await axios.post(`${BASE_URL}/api/auth/resetPassword`, { email, newPassword });
       if (response.data.success) {
         Alert.alert("✅ הצלחה", "הסיסמה אופסה בהצלחה!");
         router.replace("/login");

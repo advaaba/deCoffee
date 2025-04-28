@@ -7,8 +7,6 @@ import { useEffect } from "react";
 export default function OpenScreen() {
   const router = useRouter();
   const navigation = useNavigation();
-  // `http://172.20.10.10:5000/api/auth/get-user/${userId}`
-          // `http://localhost:5000/api/auth/get-user/${userId}`
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: "DeCoffee" });

@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
   averageCaffeineRecommendation: { type: Number },
   customHealthDescription: { type: String },
   customDietaryPreference: { type: String },
+  expoPushToken: { type: String, default: null },
 
   coffeeConsumption: {
     coffeeType: [

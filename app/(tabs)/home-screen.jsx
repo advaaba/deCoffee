@@ -13,11 +13,96 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import axios from "axios";
 import Toast from "react-native-toast-message";
+import BASE_URL from "../../utils/apiConfig";
+import * as Notifications from "expo-notifications";
 
 export default function HomeScreen() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  const saveExpoPushToken = async (token) => {
+    const userId = await AsyncStorage.getItem("userId");
+
+    if (!userId) return;
+
+    try {
+      await axios.put(`${BASE_URL}/api/auth/save-push-token`, {
+        userId,
+        expoPushToken: token,
+      });
+      console.log("✅ Expo Push Token נשמר במסד הנתונים");
+    } catch (error) {
+      console.error("❌ שגיאה בשמירת הטוקן:", error);
+    }
+  };
+
+  const scheduleNotificationsForConsumptionTimes = async (consumptionTimes) => {
+    if (!consumptionTimes || consumptionTimes.length === 0) {
+      console.log("⚠️ אין זמני שתיית קפה להגדיר תזכורות.");
+      return;
+    }
+    const notificationTimes = {
+      Morning: { hour: 9, minute: 0 },
+      Afternoon: { hour: 15, minute: 0 },
+      evening: { hour: 19, minute: 0 },
+      night: { hour: 22, minute: 0 },
+    };
+
+    for (const time of consumptionTimes) {
+      const { hour, minute } = notificationTimes[time];
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "☕ זמן קפה הגיע!",
+          body: `זה הזמן המושלם להפסקת קפה (${time}) 🌟`,
+        },
+        trigger: {
+          hour,
+          minute,
+          repeats: true, // כל יום
+        },
+      });
+
+      console.log(`✅ תזכורת לתזמון ${time} נקבעה בשעה ${hour}:${minute}`);
+    }
+  };
+
+  const scheduleTestNotification = async () => {
+    const now = new Date();
+    const trigger = new Date(now.getTime() + 2 * 60 * 1000); // עוד שתי דקות מעכשיו
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "☕ תזכורת לניסוי!",
+        body: "זו תזכורת לבדיקה 🎯",
+      },
+      trigger: {
+        hour: trigger.getHours(),
+        minute: trigger.getMinutes(),
+        repeats: false,
+      },
+    });
+
+    console.log(
+      `✅ תזכורת לניסוי תישלח בשעה ${trigger.getHours()}:${trigger.getMinutes()}`
+    );
+  };
+
+  const sendImmediateNotification = async () => {
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "☕ בדיקה מיידית!",
+          body: "זו תזכורת שנשלחה עכשיו 🎯",
+        },
+        trigger: null, // שולח את ההתראה מיידית
+      });
+      console.log("✅ נשלחה תזכורת מיידית");
+    } catch (error) {
+      console.error("❌ שגיאה בשליחת תזכורת מיידית:", error);
+    }
+  };
 
   useEffect(() => {
     const loadUser = async () => {
@@ -30,12 +115,17 @@ export default function HomeScreen() {
           );
           return;
         }
+
         const response = await axios.get(
-          `http://172.20.10.10:5000/api/auth/get-user/${userId}`
-          // `http://localhost:5000/api/auth/get-user/${userId}`
+          `${BASE_URL}/api/auth/get-user/${userId}`
         );
         if (response.data.success) {
           setUser(response.data.user);
+          await scheduleNotificationsForConsumptionTimes(
+            response.data.user.coffeeConsumption.consumptionTime || []
+          );
+          await scheduleTestNotification();
+          await sendImmediateNotification();
         } else {
           Alert.alert(
             "\u05e9\u05d2\u05d9\u05d0\u05d4",
@@ -57,6 +147,47 @@ export default function HomeScreen() {
       text1: "ברוכה הבאה אדוה 🌟",
       text2: "כיף לראות אותך שוב!",
     });
+  }, []);
+
+  useEffect(() => {
+    const requestNotificationPermission = async () => {
+      try {
+        const alreadyAsked = await AsyncStorage.getItem(
+          "hasAskedNotificationPermission"
+        );
+        if (alreadyAsked) {
+          console.log("🔔 כבר ביקשנו הרשאה להתראות.");
+          return;
+        }
+
+        const { status: existingStatus } =
+          await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+
+        if (existingStatus !== "granted") {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+
+        if (finalStatus === "granted") {
+          console.log("🔔 קיבלנו הרשאת Notifications! שולחים הודעת תודה...");
+          const token = (await Notifications.getExpoPushTokenAsync()).data;
+          console.log("Expo Push Token:", token);
+          await saveExpoPushToken(token);
+        } else {
+          Alert.alert(
+            "שים לב",
+            "כדי לקבל תזכורות יומיות, נא לאשר קבלת התראות."
+          );
+        }
+
+        await AsyncStorage.setItem("hasAskedNotificationPermission", "true");
+      } catch (error) {
+        console.error("❌ שגיאה בבקשת הרשאות Notifications:", error);
+      }
+    };
+
+    requestNotificationPermission();
   }, []);
 
   const handleLogout = () => {
@@ -85,6 +216,16 @@ export default function HomeScreen() {
       { cancelable: true }
     );
   };
+  useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        console.log("התראה התקבלה:", notification);
+        Alert.alert("התראה התקבלה", notification.request.content.body);
+      }
+    );
+
+    return () => subscription.remove();
+  }, []);
 
   if (loading)
     return (
@@ -119,6 +260,12 @@ export default function HomeScreen() {
               title="התחילי מעקב יומי"
               onPress={() => router.push("/create")}
               color="#4CAF50"
+            />
+            <Button
+              title="שלח לי תזכורת עכשיו 🚀"
+              onPress={sendImmediateNotification}
+              color="#2196F3"
+              style={{ marginTop: 10 }}
             />
           </>
         ) : (
@@ -171,5 +318,4 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 20,
   },
-  
 });

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 // import { analyzeInitialPattern } from "../../analysis/initialBehaviorModel";
+import BASE_URL from "../../utils/apiConfig";
 
 export default function CoffeeScreen() {
   const router = useRouter();
@@ -24,31 +25,30 @@ export default function CoffeeScreen() {
         if (!userId) return;
 
         const response = await axios.get(
-          `http://172.20.10.10:5000/api/auth/get-user/${userId}`
-          // `http://localhost:5000/api/auth/get-user/${userId}`
+          `${BASE_URL}/api/auth/get-user/${userId}`
         );
 
         const userData = response.data.user;
         const caffeineMin = userData.caffeineRecommendationMin;
         const caffeineMax = userData.caffeineRecommendationMax;
         const finalCaffeine = userData.averageCaffeineRecommendation;
-        // const coffeeData = userData.coffeeConsumption;
+        const coffeeData = userData.coffeeConsumption;
         const averageCaffeinePerDay =
           userData.averageCaffeinePerDay ??
           coffeeData?.averageCaffeinePerDay ??
           0;
-        console.log("🧠 נשלח ל־AI:", {
-          age: userData.age,
-          averageCaffeinePerDay, // ✅ זה המשתנה שתיקנת למעלה
-          sleepDurationAverage: coffeeData?.sleepDurationAverage || 0,
-          workDurationAverage: coffeeData?.workDurationAverage || 0,
-          caffeineRecommendationMin: userData.caffeineRecommendationMin || 0,
-          caffeineRecommendationMax: userData.caffeineRecommendationMax || 0,
-          isTryingToReduce: coffeeData?.isTryingToReduce === "yes",
-          isMotivation: userData.isMotivation ?? false,
-          selfDescription: coffeeData?.selfDescription || "",
-          activityLevel: userData.activityLevel || "None",
-        });
+        // console.log("🧠 נשלח ל־AI:", {
+        //   age: userData.age,
+        //   averageCaffeinePerDay, // ✅ זה המשתנה שתיקנת למעלה
+        //   sleepDurationAverage: coffeeData?.sleepDurationAverage || 0,
+        //   workDurationAverage: coffeeData?.workDurationAverage || 0,
+        //   caffeineRecommendationMin: userData.caffeineRecommendationMin || 0,
+        //   caffeineRecommendationMax: userData.caffeineRecommendationMax || 0,
+        //   isTryingToReduce: coffeeData?.isTryingToReduce === "yes",
+        //   isMotivation: userData.isMotivation ?? false,
+        //   selfDescription: coffeeData?.selfDescription || "",
+        //   activityLevel: userData.activityLevel || "None",
+        // });
 
         // const aiText = await analyzeInitialPattern({
         //   age: userData.age || 0,
@@ -80,17 +80,14 @@ export default function CoffeeScreen() {
         if (hasData) {
           setIsFilled(true);
         }
-        const aiResponse = await axios.get(
-          `http://172.20.10.10:5000/api/auth/get-insights/${userId}`
-          // `http://localhost:5000/api/auth/get-insights/${userId}`
-        );
-        setInsights(aiResponse.data.insights);
-        setRecommendations(aiResponse.data.recommendations);
+        // const aiResponse = await axios.post(`${BASE_URL}/api/auth/get-insights/${userId}`);
+        // setInsights(aiResponse.data.insights);
+        // setRecommendations(aiResponse.data.recommendations);
 
-        console.log("🔥 AI Response:", aiResponse.data);
+        // console.log("🔥 AI Response:", aiResponse.data);
       } catch (error) {
-        // console.error("שגיאה בשליפת נתוני coffeeConsumption:", error);
-        setAiMessage("⚠️ לא הצלחנו לבצע ניתוח כרגע.");
+        console.error("שגיאה בשליפת נתוני coffeeConsumption:", error);
+        // setAiMessage("⚠️ לא הצלחנו לבצע ניתוח כרגע.");
       }
     };
 

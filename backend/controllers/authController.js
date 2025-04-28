@@ -256,6 +256,26 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const savePushToken = async (req, res) => {
+  const { userId, expoPushToken } = req.body;
+
+  try {
+    const user = await User.findOne({ userId });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "❌ המשתמש לא נמצא" });
+    }
+
+    user.expoPushToken = expoPushToken;
+    await user.save();
+
+    res.json({ success: true, message: "✅ הטוקן נשמר בהצלחה" });
+  } catch (error) {
+    console.error("❌ שגיאה בשמירת Expo Token:", error);
+    res.status(500).json({ success: false, message: "❌ שגיאה בשרת" });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -263,4 +283,5 @@ module.exports = {
   getInsights,
   checkUser,
   resetPassword,
+  savePushToken
 };

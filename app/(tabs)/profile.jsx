@@ -13,6 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useRouter } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
+import BASE_URL from "../../utils/apiConfig";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -34,8 +35,8 @@ export default function Profile() {
           return;
         }
         const response = await axios.get(
-          `http://172.20.10.10:5000/api/auth/get-user/${userId}`
-          // `http://localhost:5000/api/auth/get-user/${userId}`
+          `${BASE_URL}/api/auth/get-user/${userId}`
+         
         );
         if (response.data.success) {
           const birthDate = new Date(response.data.user.birthDate);
@@ -95,10 +96,9 @@ export default function Profile() {
     if (editMode) {
       try {
         await axios.put(
-          `http://localhost:5000/api/auth/update-user/${editedUser.userId}`,
+          `${BASE_URL}/api/auth/update-user/${editedUser.userId}`,
           editedUser
         );
-
         setUser(editedUser);
         Alert.alert("🎉", "הפרטים עודכנו בהצלחה במסד הנתונים");
       } catch (err) {

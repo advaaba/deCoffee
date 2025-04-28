@@ -9,6 +9,7 @@ const {
   resetPassword
 } = require('../controllers/authController');
 const User = require('../models/User');
+router.put('/save-push-token', require('../controllers/authController').savePushToken);
 
 // רישום והתחברות
 router.post('/register', registerUser);

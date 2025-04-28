@@ -16,6 +16,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import MoodSelector from "./MoodSelector";
+import BASE_URL from "../../utils/apiConfig";
 
 export default function Create() {
   const [sleepFromHour, setSleepFromHour] = useState(null);
@@ -115,10 +116,7 @@ export default function Create() {
     
 
     try {
-      const response = await axios.post(
-        "http://172.20.10.10:5000/api/dailyData",
-        finalData
-      );
+      const response = await axios.post(`${BASE_URL}/api/dailyData`,finalData);
       console.log("✅ שליחה הצליחה:", response.data);
       Alert.alert("הצלחה", "הנתונים נשמרו בהצלחה!");
     } catch (err) {

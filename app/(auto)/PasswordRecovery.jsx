@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
+import BASE_URL from "../../utils/apiConfig";
 
 export default function PasswordRecovery() {
   const router = useRouter();
@@ -23,8 +24,7 @@ export default function PasswordRecovery() {
 
     try {
       // שליחה לשרת לבדיקה אם אימייל ות"ז קיימים
-      const response = await axios.post("http://172.20.10.10:5000/api/auth/checkUser", { email, userId });
-
+      const response = await axios.post(`${BASE_URL}/api/auth/checkUser`, { email, userId });
       if (response.data.success) {
         Alert.alert("✅ נמצא משתמש", "מעבר לאיפוס סיסמה.");
         router.push({

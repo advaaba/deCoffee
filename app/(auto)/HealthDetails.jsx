@@ -13,12 +13,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import RadioGroup from "react-native-radio-buttons-group";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import BASE_URL from "../../utils/apiConfig";
 
 const HealthDetailsScreen = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
-  // const SERVER_URL = "http://localhost:5000/api/auth/register";
-  const SERVER_URL = "http://172.20.10.10:5000/api/auth/register";
   const [errors, setErrors] = useState({});
   const validateForm = () => {
     const newErrors = {};
@@ -298,7 +297,7 @@ const HealthDetailsScreen = () => {
     console.log("📩 שולחת נתונים לשרת:", finalData);
 
     try {
-      const response = await axios.post(SERVER_URL, finalData);
+       const response = await axios.post(`${BASE_URL}/api/auth/register`,finalData);
       console.log("✅ הרשמה הצליחה:", response.data);
       Alert.alert("הצלחה", "נרשמת בהצלחה!");
       await AsyncStorage.setItem("userId", response.data.user.userId);

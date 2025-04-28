@@ -14,6 +14,7 @@ import { useRouter } from "expo-router";
 import RadioGroup from "react-native-radio-buttons-group";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import BASE_URL from "../../utils/apiConfig";
 
 const CoffeeDetails = () => {
   const router = useRouter();
@@ -46,9 +47,11 @@ const CoffeeDetails = () => {
 
   useEffect(() => {
     const fetchCoffeeTypes = async () => {
-      try {
-        // const response = await axios.get("http://localhost:5000/api/drinks");
-        const response = await axios.get("http://172.20.10.10:5000/api/drinks");
+      try { 
+        const response = await axios.post(
+          `${BASE_URL}/api/drinks`
+        );
+
         setCoffeeTypesFromDb(response.data); // שומרת את כל המידע
       } catch (error) {
         console.error("❌ שגיאה בשליפת סוגי הקפה:", error.message);
@@ -171,7 +174,6 @@ const CoffeeDetails = () => {
       value: hour + minutes / 60,
     };
   });
-  
 
   const yesNoOptions = useMemo(
     () => [
@@ -282,7 +284,7 @@ const CoffeeDetails = () => {
     });
     setErrors({});
   };
-  
+
   // מוטיבציה
   const handleImportanceChange = (item) => {
     setImportanceLevel(item.value);
@@ -329,11 +331,7 @@ const CoffeeDetails = () => {
         },
       };
 
-      const response = await axios.put(
-        `http://localhost:5000/api/auth/update-coffee-consumption/${userId}`,
-        finalData.coffeeConsumption
-      );
-
+      const response = await axios.post(`${BASE_URL}/api/auth/update-coffee-consumption/${userId}`, finalData.coffeeConsumption);
       console.log("📦 נתונים שנשלחים לשרת: ", finalData);
       console.log("✅ עדכון הצליח:", response.data);
 
@@ -342,8 +340,8 @@ const CoffeeDetails = () => {
       //   {
       //     text: "אוקיי",
       //     onPress: () => {
-            resetForm();
-            router.push("/coffee");
+      resetForm();
+      router.push("/coffee");
       //     },
       //   },
       // ]);
@@ -755,7 +753,6 @@ const CoffeeDetails = () => {
             <Text style={styles.buttonText}>חזור</Text>
           </TouchableOpacity>
         </View>
-        
       </View>
     </ScrollView>
   );

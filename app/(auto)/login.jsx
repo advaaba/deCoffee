@@ -11,11 +11,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-
-const SERVER_URL = "http://172.20.10.10:5000/api/auth/login"; // כתובת השרת
-// const SERVER_URL = "http://localhost:5000/api/auth/login";
-
-// (79.177.158.86/32)
+import BASE_URL from "../../utils/apiConfig";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -33,7 +29,7 @@ const LoginScreen = () => {
     try {
       console.log("📩 שליחת נתוני התחברות:", { email, password });
 
-      const response = await axios.post(SERVER_URL, { email, password });
+      const response = await axios.post(`${BASE_URL}/api/auth/login`, { email, password });
 
       console.log("✅ תגובת השרת:", response.data);
 
