@@ -19,6 +19,7 @@ import * as Notifications from "expo-notifications";
 export default function HomeScreen() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [dailyStatus, setDailyStatus] = useState(null);
   const router = useRouter();
 
   const saveExpoPushToken = async (token) => {
@@ -37,11 +38,31 @@ export default function HomeScreen() {
     }
   };
 
+  const checkDailyData = async () => {
+    const userId = await AsyncStorage.getItem("userId");
+    const today = new Date().toISOString().split("T")[0]; // תאריך היום בתבנית yyyy-mm-dd
+
+    try {
+      const response = await axios.get(`${BASE_URL}/api/dailyData/check`, {
+        params: { userId, date: today },
+      });
+
+      if (response.data.exists) {
+        setDailyStatus("מילאת את הסקירה היומית!"); // אם מילא, הצג את המצב החיובי
+      } else {
+        setDailyStatus("עוד לא התחלת לעקוב אחרי צריכת הקפה שלך היום."); // אם לא מילא, הצג הודעה שתעודד את המשתמש למלא
+      }
+    } catch (error) {
+      console.error("❌ שגיאה בבדיקת הסקירה היומית:", error);
+    }
+  };
+
   const scheduleNotificationsForConsumptionTimes = async (consumptionTimes) => {
     if (!consumptionTimes || consumptionTimes.length === 0) {
       console.log("⚠️ אין זמני שתיית קפה להגדיר תזכורות.");
       return;
     }
+
     const notificationTimes = {
       Morning: { hour: 9, minute: 0 },
       Afternoon: { hour: 15, minute: 0 },
@@ -52,41 +73,26 @@ export default function HomeScreen() {
     for (const time of consumptionTimes) {
       const { hour, minute } = notificationTimes[time];
 
+      // מחשב את השעה המדויקת הבאה
+      const now = new Date();
+      let triggerDate = new Date();
+      triggerDate.setHours(hour, minute, 0, 0);
+
+      // אם השעה כבר חלפה היום, תקבע למחר
+      if (triggerDate <= now) {
+        triggerDate.setDate(triggerDate.getDate() + 1);
+      }
+
       await Notifications.scheduleNotificationAsync({
         content: {
           title: "☕ זמן קפה הגיע!",
           body: `זה הזמן המושלם להפסקת קפה (${time}) 🌟`,
         },
-        trigger: {
-          hour,
-          minute,
-          repeats: true, // כל יום
-        },
+        trigger: triggerDate,
       });
 
-      console.log(`✅ תזכורת לתזמון ${time} נקבעה בשעה ${hour}:${minute}`);
+      console.log(`✅ תזכורת לתזמון ${time} נקבעה ל: ${triggerDate}`);
     }
-  };
-
-  const scheduleTestNotification = async () => {
-    const now = new Date();
-    const trigger = new Date(now.getTime() + 2 * 60 * 1000); // עוד שתי דקות מעכשיו
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "☕ תזכורת לניסוי!",
-        body: "זו תזכורת לבדיקה 🎯",
-      },
-      trigger: {
-        hour: trigger.getHours(),
-        minute: trigger.getMinutes(),
-        repeats: false,
-      },
-    });
-
-    console.log(
-      `✅ תזכורת לניסוי תישלח בשעה ${trigger.getHours()}:${trigger.getMinutes()}`
-    );
   };
 
   const sendImmediateNotification = async () => {
@@ -121,11 +127,10 @@ export default function HomeScreen() {
         );
         if (response.data.success) {
           setUser(response.data.user);
+          await checkDailyData();
           await scheduleNotificationsForConsumptionTimes(
             response.data.user.coffeeConsumption.consumptionTime || []
           );
-          await scheduleTestNotification();
-          await sendImmediateNotification();
         } else {
           Alert.alert(
             "\u05e9\u05d2\u05d9\u05d0\u05d4",
@@ -206,7 +211,7 @@ export default function HomeScreen() {
             try {
               await AsyncStorage.removeItem("userToken");
               await AsyncStorage.removeItem("userId");
-              router.replace("/auto/open-screen");
+              router.replace("/open-screen");
             } catch (error) {
               console.error("❌ שגיאה בהתנתקות:", error);
             }
@@ -227,7 +232,7 @@ export default function HomeScreen() {
     return () => subscription.remove();
   }, []);
 
-  if (loading)
+  if (loading) {
     return (
       <ActivityIndicator
         size="large"
@@ -235,6 +240,7 @@ export default function HomeScreen() {
         style={{ marginTop: 40 }}
       />
     );
+  }
 
   return (
     <View>
@@ -247,14 +253,24 @@ export default function HomeScreen() {
               האפליקצייה שתעזור לך לעקוב אחרי הרגלי שתיית הקפה שלך, להבין איך
               קפאין משפיע עלייך ולבנות הרגלים שמתאימים לך אישית
             </Text>
+
+            {/* <View style={styles.section}>
+              <Text style={styles.subTitle}>📊 מצב יומי:</Text>
+              <Text style={styles.text}>{dailyStatus}</Text> {/* הצגת מצב הסקירה */}
+            {/* </View> */}
+
+            {/* {dailyStatus !== "מילאת את הסקירה היומית!" && (
+              <Button
+                title="התחילי מעקב יומי"
+                onPress={() => router.push("/create")}
+                color="#4CAF50"
+              />
+            )} */} 
             <View style={styles.section}>
               <Text style={styles.subTitle}>📊 מצב יומי:</Text>
               <Text style={styles.text}>
                 עוד לא התחלת לעקוב אחרי הקפה שלך היום.
               </Text>
-              {/* <TouchableOpacity onPress={handleLogout} style={styles.backLink}>
-              <Text style={styles.linkText}>התנתקות מהחשבון</Text>
-            </TouchableOpacity> */}
             </View>
             <Button
               title="התחילי מעקב יומי"
@@ -267,14 +283,14 @@ export default function HomeScreen() {
               color="#2196F3"
               style={{ marginTop: 10 }}
             />
+            <TouchableOpacity onPress={handleLogout} style={styles.backLink}>
+              <Text style={styles.linkText}>התנתקות מהחשבון</Text>
+            </TouchableOpacity>
           </>
         ) : (
           <Text style={styles.text}>לא נמצאו נתוני משתמש.</Text>
         )}
       </ScrollView>
-      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-        <Text style={styles.linkText}>התנתקות מהחשבון</Text>
-      </TouchableOpacity>
     </View>
   );
 }

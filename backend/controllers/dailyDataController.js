@@ -35,4 +35,6 @@ const createDailyEntry = async (req, res) => {
   }
 };
 
+
+
 module.exports = { createDailyEntry };

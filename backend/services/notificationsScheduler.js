@@ -29,7 +29,7 @@ const sendPushNotification = async (expoPushToken) => {
 
 const startDailyNotifications = () => {
   // הרצת המשימה כל יום ב-9 בבוקר
-  cron.schedule('0 9 * * *', async () => {
+  cron.schedule('0 16 * * *', async () => {
     console.log('⏰ שולחים תזכורת יומית...');
 
     // כאן תשלפי את כל ה-Expo Tokens של המשתמשים ממסד הנתונים

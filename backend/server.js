@@ -6,8 +6,9 @@ const config = require('./config');
 const authRoutes = require('./routes/authRoutes');
 const drinkRoutes = require("./routes/drinkRoutes");
 const dailyDataRoutes = require("./routes/dailyDataRoutes");
-const notificationsRoutes = require("./routes/notificationsRoutes");
+// const notificationsRoutes = require("./routes/notificationsRoutes");
 const { startDailyNotifications } = require('./services/notificationsScheduler');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -21,7 +22,7 @@ startDailyNotifications();
 app.use('/api/auth', authRoutes);
 app.use("/api/drinks", drinkRoutes);
 app.use("/api/dailyData", dailyDataRoutes);
-app.use("/api/notifications", notificationsRoutes);
+// app.use("/api/notifications", notificationsRoutes);
 
 // בדיקת חיבור לשרת
 app.get('/', (req, res) => {

@@ -246,6 +246,9 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "stretch",
   },
+  Text: {
+    textAlign: "right"
+  },
   title: {
     fontSize: 24,
     fontWeight: "600",
