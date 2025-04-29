@@ -88,37 +88,48 @@ export default function HomeScreen() {
       console.log("⚠️ אין זמני שתיית קפה להגדיר תזכורות.");
       return;
     }
-
+  
     const notificationTimes = {
       Morning: { hour: 9, minute: 0 },
       Afternoon: { hour: 15, minute: 0 },
       evening: { hour: 19, minute: 0 },
       night: { hour: 22, minute: 0 },
     };
-
+  
+    const existingNotifications = await Notifications.getAllScheduledNotificationsAsync();
+  
     for (const time of consumptionTimes) {
+      const identifier = `coffeeReminder_${time}`;
+      const alreadyScheduled = existingNotifications.some(
+        (notif) => notif.identifier === identifier
+      );
+  
       const { hour, minute } = notificationTimes[time];
-    
       const now = new Date();
-      let triggerDate = new Date();
+      const triggerDate = new Date();
       triggerDate.setHours(hour, minute, 0, 0);
-    
+  
       if (triggerDate <= now) {
-        // אם עבר הזמן – שלח תזכורת באיחור פעם אחת
         await handleMissedNotification(time, hour, minute);
-      } else {
-        // אם עוד לא הגיע – קבע רגיל
+      } else if (!alreadyScheduled) {
         await Notifications.scheduleNotificationAsync({
           content: {
             title: "☕ זמן קפה הגיע!",
             body: `זה הזמן המושלם להפסקת קפה (${time}) 🌟`,
           },
-          trigger: triggerDate,
+          trigger: {
+            date: triggerDate,
+          },
+          identifier, // ייחודי לכל תזכורת
         });
+  
         console.log(`✅ תזכורת עתידית נקבעה ל־${time}: ${triggerDate}`);
+      } else {
+        console.log(`🔁 תזכורת ${time} כבר מתוזמנת`);
       }
-    }    
+    }
   };
+  
 
   const sendImmediateNotification = async () => {
     try {

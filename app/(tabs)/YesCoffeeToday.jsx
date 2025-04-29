@@ -11,11 +11,13 @@ import {
 import RadioGroup from "react-native-radio-buttons-group";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 import axios from "axios";
-import { useRouter,   } from "expo-router";
+import { useRouter } from "expo-router";
 import BASE_URL from "../../utils/apiConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function YesCoffeeToday({ onDataChange, generalData }) {
+export default function YesCoffeeToday({ onDataChange, generalData, 
+ }) {
+  console.log("entryId שקיבלתי:", entryId);
   const router = useRouter();
   const [cups, setCups] = useState("");
   const [coffeeType, setCoffeeType] = useState("");
@@ -39,10 +41,15 @@ export default function YesCoffeeToday({ onDataChange, generalData }) {
   console.log("🔵 קיבלתי את הנתונים מ-Create:", generalData);
 
   useEffect(() => {
+    console.log("entryId שקיבלתי:", entryId);
+  }, []);
+  
+  useEffect(() => {
     const fetchCoffeeTypes = async () => {
-      try {
-        // const response = await axios.get("http://localhost:5000/api/drinks");
-        const response = await axios.get("http://172.20.10.10:5000/api/drinks");
+      try { 
+        const response = await axios.get(`${BASE_URL}/api/drinks`);
+
+
         setCoffeeTypesFromDb(response.data); // שומרת את כל המידע
       } catch (error) {
         console.error("❌ שגיאה בשליפת סוגי הקפה:", error.message);
@@ -146,6 +153,7 @@ export default function YesCoffeeToday({ onDataChange, generalData }) {
   ];
 
   const handleContinue = async () => {
+    console.log("▶️ לחצו על כפתור השליחה");
     const userId = await AsyncStorage.getItem("userId");
   
     const finalData = {
@@ -171,14 +179,21 @@ export default function YesCoffeeToday({ onDataChange, generalData }) {
       },
       noCoffeeDetails: null
     };
-  
+
     try {
-      await axios.post(`${BASE_URL}/api/dailyData`, finalData);
-      Alert.alert("✅ הצלחה", "הנתונים נשמרו בהצלחה!");
-    } catch (error) {
-      console.error("❌ שגיאה בשליחה:", error.message);
-      Alert.alert("שגיאה", "השליחה נכשלה. נסי שוב.");
+      if (entryId) {
+        await axios.put(`${BASE_URL}/api/dailyData/${entryId}`, finalData);
+        Alert.alert("✅ הסקירה עודכנה בהצלחה!");
+      } else {
+        await axios.post(`${BASE_URL}/api/dailyData`, finalData);
+        Alert.alert("✅ הסקירה נשמרה בהצלחה!");
+      }
+      router.push("/(tabs)/create?reload=true");
+    } catch (err) {
+      console.error("❌ שגיאה בשמירה:", err);
+      Alert.alert("שגיאה", "משהו השתבש בעת השמירה.");
     }
+    
   };
   
   return (

@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const DailyData = require('../models/dailyData');
-const { createDailyEntry } = require('../controllers/dailyDataController');
+const { createDailyEntry, getDailyEntryByDate, updateDailyEntry } = require('../controllers/dailyDataController');
 
 router.post('/', createDailyEntry);
+router.get('/by-date/:userId', getDailyEntryByDate);
+router.put('/:id', updateDailyEntry);
 router.get('/check', async (req, res) => {
     const { userId, date } = req.query;
   

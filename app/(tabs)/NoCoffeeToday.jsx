@@ -14,9 +14,9 @@ import BASE_URL from "../../utils/apiConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-export default function NoCoffeeToday({ onDataChange, generalData }) {
+export default function NoCoffeeToday({ onDataChange, generalData, entryId }) {
+  console.log("entryId שקיבלתי:", entryId);
   const router = useRouter();
-
   const [feltWithoutCoffee, setFeltWithoutCoffee] = useState("");
   const [consideredDrinking, setConsideredDrinking] = useState(null);
   const [willDrinkLater, setWillDrinkLater] = useState(null);
@@ -29,7 +29,10 @@ export default function NoCoffeeToday({ onDataChange, generalData }) {
   const [formData, setFormData] = useState({});
   
   console.log("🔵 קיבלתי את הנתונים מ-Create:", generalData);
-
+  useEffect(() => {
+    console.log("entryId שקיבלתי:", entryId);
+  }, []);
+  
   useEffect(() => {
     const data = {
       feltWithoutCoffee,
@@ -104,6 +107,7 @@ export default function NoCoffeeToday({ onDataChange, generalData }) {
   ];
 
   const handleContinue = async () => {
+    
     const userId = await AsyncStorage.getItem("userId");
   
     const finalData = {
@@ -130,13 +134,22 @@ export default function NoCoffeeToday({ onDataChange, generalData }) {
       }
     };
   
+
     try {
-      await axios.post(`${BASE_URL}/api/dailyData`, finalData);
-      Alert.alert("✅ הצלחה", "הנתונים נשמרו בהצלחה!");
-    } catch (error) {
-      console.error("❌ שגיאה בשליחה:", error.message);
-      Alert.alert("שגיאה", "השליחה נכשלה. נסי שוב.");
+      if (entryId) {
+        await axios.put(`${BASE_URL}/api/dailyData/${entryId}`, finalData);
+        Alert.alert("✅ הסקירה עודכנה בהצלחה!");
+      } else {
+        await axios.post(`${BASE_URL}/api/dailyData`, finalData);
+        Alert.alert("✅ הסקירה נשמרה בהצלחה!");
+      }
+      router.push("/(tabs)/create?reload=true");
+
+    } catch (err) {
+      console.error("❌ שגיאה בשמירה:", err);
+      Alert.alert("שגיאה", "משהו השתבש בעת השמירה.");
     }
+    
   };
   
   

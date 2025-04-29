@@ -1,312 +1,71 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { Dropdown } from "react-native-element-dropdown";
-import RadioGroup from "react-native-radio-buttons-group";
-import {
-  View,
-  Text,
-  Input,
-  Button,
-  StyleSheet,
-  ScrollView,
-  Alert,
-} from "react-native";
-import YesCoffeeToday from "./YesCoffeeToday";
-import NoCoffeeToday from "./NoCoffeeToday";
+import { useEffect, useState, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import MoodSelector from "./MoodSelector";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { View, ActivityIndicator } from "react-native";
+import DailyData from "./DailyData";
+import DailyQuestions from "./DailyQuestions";
+import BASE_URL from "../../utils/apiConfig";
 
 export default function Create() {
-  const [sleepFromHour, setSleepFromHour] = useState(null);
-  const [sleepToHour, setSleepToHour] = useState(null);
+  const [dailyData, setDailyData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const params = useLocalSearchParams();
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const initialParamsRef = useRef(params);
   const router = useRouter();
 
-  const [mood, setMood] = useState(null);
-  const [focusLevel, setFocusLevel] = useState("");
-  const [tirednessLevel, setTirednessLevel] = useState("");
-  const [isDrinking, setIsDrinking] = useState(null);
-  const [yesCoffeeData, setYesCoffeeData] = useState(null);
-  const [noCoffeeData, setNoCoffeeData] = useState(null);
-  const [yesCoffeeValid, setYesCoffeeValid] = useState(false);
-  const [noCoffeeValid, setNoCoffeeValid] = useState(false);
-
-  const params = useLocalSearchParams();
-
   useEffect(() => {
-    console.log("✅ עדכון yesCoffeeData:", yesCoffeeData);
-    console.log("✅ עדכון noCoffeeData:", noCoffeeData);
-  }, [yesCoffeeData, noCoffeeData]);
+    if (params.entryId) {
+      setIsEditMode(true);
+      setLoading(false);
+    } else if (params.reload === "true" || !dailyData) {
+      fetchDailyData();
+    }
+  }, [params]);
+  
+  
+  useEffect(() => {
+    if (!params.entryId && isEditMode) {
+      console.log("🔄 יציאה ממצב עריכה");
+      setIsEditMode(false);
+      setDailyData(null);
+    }
+  }, [params]);
+  
+  const fetchDailyData = async () => {
+    const userId = await AsyncStorage.getItem("userId");
+    if (!userId) return;
 
-  const calculateDuration = (start, end) => {
-    if (start == null || end == null) return 0;
-    return end >= start ? end - start : 24 - start + end;
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const res = await axios.get(
+        `${BASE_URL}/api/dailyData/by-date/${userId}?date=${today}`
+      );
+      setDailyData(res.data || null);
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        setDailyData(null);
+      } else {
+        console.error("❌ שגיאה בשליפת סקירה יומית:", err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const sleepDurationAverage = useMemo(
-    () => calculateDuration(sleepFromHour, sleepToHour),
-    [sleepFromHour, sleepToHour]
-  );
-
-  const ratingOptions = [
-    { id: "great", label: "מצוין", value: "great" },
-    { id: "good", label: "טוב", value: "good" },
-    { id: "okay", label: "בסדר", value: "okay" },
-    { id: "bad", label: "רע", value: "bad" },
-    { id: "terrible", label: "נורא", value: "terrible" },
-  ];
-
-  const hoursOptions = Array.from({ length: 24 * 2 }, (_, i) => {
-    const hour = Math.floor(i / 2);
-    const minutes = (i % 2) * 30;
-    return {
-      label: `${hour.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`,
-      value: hour + minutes / 60,
-    };
-  });
-
-  const [radioButtons, setRadioButtons] = useState([
-    { id: "yes", label: "כן", value: "yes" },
-    { id: "no", label: "לא", value: "no" },
-  ]);
-
-  const isFormValid = useMemo(() => {
-    if (!sleepFromHour || !sleepToHour || sleepDurationAverage === 0)
-      return false;
-    if (!mood || !focusLevel || !tirednessLevel) return false;
-
-    if (isDrinking === "yes" && !yesCoffeeValid) return false;
-    if (isDrinking === "no" && !noCoffeeValid) return false;
-
-    return true;
-  }, [
-    sleepFromHour,
-    sleepToHour,
-    sleepDurationAverage,
-    mood,
-    focusLevel,
-    tirednessLevel,
-    isDrinking,
-    yesCoffeeValid,
-    noCoffeeValid,
-  ]);
-
-  // const handleSubmit = async () => {
-  //   const userId = await AsyncStorage.getItem("userId");
-  //   const finalData = {
-  //     userId,
-  //     date: new Date().toISOString().split("T")[0],
-  //     sleepHours: sleepDurationAverage,
-  //     mood,
-  //     focusLevel,
-  //     tirednessLevel,
-  //     drankCoffee: isDrinking === "yes",
-  //     coffeeDetails: yesCoffeeData,
-  //     noCoffeeDetails: noCoffeeData,
-  //   };
-
-  //   // 💥 בדיקה לפני השליחה
-  //   if (!userId || !isFormValid) {
-  //     console.log("אנא מלא את כל השדות לפני השליחה", finalData);
-  //     Alert.alert("שגיאה", "אנא מלאי את כל השדות לפני השליחה.");
-  //     return;
-  //   }
-
-  //   try {
-  //     const response = await axios.post(`${BASE_URL}/api/dailyData`, finalData);
-  //     console.log("✅ שליחה הצליחה:", response.data);
-  //     Alert.alert("הצלחה", "הנתונים נשמרו בהצלחה!");
-  //   } catch (err) {
-  //     console.error("❌ שגיאה בשליחה:", err);
-  //     Alert.alert("שגיאה", "משהו השתבש בשמירה.");
-  //   }
-  // };
-
+  if (loading)
+    return <ActivityIndicator size="large" style={{ marginTop: 50 }} />;
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <Text style={styles.title}>סקירת הקפה היומי</Text>
-        <Text style={styles.label}>
-          עלייך למלא את כל השדות כדי לשלוח סקירה יומית מלאה
-        </Text>
-        <Text style={styles.label}>כמה שעות ישנת היום?</Text>
-        <View style={styles.sleepTimeRow}>
-          <Dropdown
-            style={[styles.dropdown, styles.sleepDropdown]}
-            data={hoursOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="עד שעה"
-            value={sleepToHour}
-            onChange={(item) => {
-              setSleepToHour(item.value);
-            }}
-            placeholderStyle={styles.placeholderText}
-            selectedTextStyle={styles.selectedText}
-          />
-          <Dropdown
-            style={[styles.dropdown, styles.sleepDropdown]}
-            data={hoursOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="משעה"
-            value={sleepFromHour}
-            onChange={(item) => {
-              setSleepFromHour(item.value);
-            }}
-            placeholderStyle={styles.placeholderText}
-            selectedTextStyle={styles.selectedText}
-          />
-        </View>
-        <MoodSelector onMoodSelect={(selectedMood) => setMood(selectedMood)} />
-        <Text style={styles.label}>מה רמת הריכוז שלך היום?</Text>
-        <Dropdown
-          style={[styles.dropdown]}
-          data={ratingOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="בחרי רמת ריכוז"
-          value={focusLevel || undefined}
-          onChange={(item) => setFocusLevel(item.value)}
-          placeholderStyle={styles.placeholderText}
-          selectedTextStyle={styles.selectedText}
-        />
-
-        <Text style={styles.label}>מה רמת העייפות שלך היום?</Text>
-        <Dropdown
-          style={[styles.dropdown]}
-          data={ratingOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="בחרי רמת עייפות"
-          value={tirednessLevel || undefined}
-          onChange={(item) => setTirednessLevel(item.value)}
-          placeholderStyle={styles.placeholderText}
-          selectedTextStyle={styles.selectedText}
-        />
-        <Text style={styles.label}>האם שתית קפה היום?</Text>
-        <RadioGroup
-          radioButtons={radioButtons}
-          onPress={(selectedId) => {
-            const allFieldsFilled =
-              sleepFromHour &&
-              sleepToHour &&
-              sleepDurationAverage !== 0 &&
-              mood &&
-              focusLevel &&
-              tirednessLevel;
-
-            if (!allFieldsFilled) {
-              Alert.alert(
-                "שגיאה",
-                "אנא מלאי את כל השדות לפני בחירה אם שתית קפה."
-              );
-              return;
-            }
-
-            setIsDrinking(selectedId);
-          }}
-          selectedId={isDrinking}
-          layout="row"
-        />
-
-        {isDrinking === "yes" && (
-          <YesCoffeeToday
-            generalData={{
-              sleepFromHour,
-              sleepToHour,
-              sleepDurationAverage,
-              mood,
-              focusLevel,
-              tirednessLevel,
-            }}
-            onDataChange={({ data, isValid }) => {
-              setYesCoffeeData(data);
-              setYesCoffeeValid(isValid);
-            }}
-          />
-        )}
-
-        {isDrinking === "no" && (
-          <NoCoffeeToday
-            generalData={{
-              sleepFromHour,
-              sleepToHour,
-              sleepDurationAverage,
-              mood,
-              focusLevel,
-              tirednessLevel,
-            }}
-            onDataChange={({ data, isValid }) => {
-              setNoCoffeeData(data);
-              setNoCoffeeValid(isValid);
-            }}
-          />
-        )}
-      </View>
-    </ScrollView>
+    <View style={{ flex: 1 }}>
+      {isEditMode ? (
+       <DailyQuestions isEditMode={true} editParams={params} /> //מצב עריכה
+      ) : dailyData ? (
+        <DailyData dailyData={dailyData} /> // מצב הצגת נתונים יומיים
+      ) : (
+        <DailyQuestions isEditMode={false} /> // יצירת סקירה חדשה
+      )}
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  scrollContainer: { flexGrow: 1, paddingBottom: 20 },
-  container: {
-    flex: 1,
-    alignItems: "flex-start",
-    padding: 20,
-    gap: 8,
-    flexDirection: "column",
-    alignItems: "stretch",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "600",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  label: {
-    fontSize: 16,
-    marginTop: 12,
-    marginBottom: 4,
-    textAlign: "right",
-    writingDirection: "rtl",
-  },
-  text: {
-    fontSize: 14,
-    textAlign: "right",
-    writingDirection: "rtl",
-  },
-  button: {
-    marginTop: 24,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  sleepDropdown: {
-    flex: 1,
-  },
-  dropdown: {
-    height: 50,
-    borderColor: "gray",
-    borderWidth: 0.5,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    marginBottom: 15,
-    width: "100%",
-  },
-  sleepTimeRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 10,
-    marginBottom: 15,
-  },
-  placeholderText: {
-    textAlign: "right",
-    color: "#999",
-  },
-  selectedText: {
-    textAlign: "right",
-    color: "#333",
-  },
-});
