@@ -265,6 +265,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     marginBottom: 4,
+    textAlign: "right",
   },
   input: {
     height: 45,

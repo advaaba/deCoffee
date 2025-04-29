@@ -88,27 +88,28 @@ export default function HomeScreen() {
       console.log("⚠️ אין זמני שתיית קפה להגדיר תזכורות.");
       return;
     }
-  
+
     const notificationTimes = {
       Morning: { hour: 9, minute: 0 },
       Afternoon: { hour: 15, minute: 0 },
       evening: { hour: 19, minute: 0 },
       night: { hour: 22, minute: 0 },
     };
-  
-    const existingNotifications = await Notifications.getAllScheduledNotificationsAsync();
-  
+
+    const existingNotifications =
+      await Notifications.getAllScheduledNotificationsAsync();
+
     for (const time of consumptionTimes) {
       const identifier = `coffeeReminder_${time}`;
       const alreadyScheduled = existingNotifications.some(
         (notif) => notif.identifier === identifier
       );
-  
+
       const { hour, minute } = notificationTimes[time];
       const now = new Date();
       const triggerDate = new Date();
       triggerDate.setHours(hour, minute, 0, 0);
-  
+
       if (triggerDate <= now) {
         await handleMissedNotification(time, hour, minute);
       } else if (!alreadyScheduled) {
@@ -122,14 +123,13 @@ export default function HomeScreen() {
           },
           identifier, // ייחודי לכל תזכורת
         });
-  
+
         console.log(`✅ תזכורת עתידית נקבעה ל־${time}: ${triggerDate}`);
       } else {
         console.log(`🔁 תזכורת ${time} כבר מתוזמנת`);
       }
     }
   };
-  
 
   const sendImmediateNotification = async () => {
     try {
@@ -290,35 +290,59 @@ export default function HomeScreen() {
               קפאין משפיע עלייך ולבנות הרגלים שמתאימים לך אישית
             </Text>
 
-            {/* <View style={styles.section}>
-              <Text style={styles.subTitle}>📊 מצב יומי:</Text>
-              <Text style={styles.text}>{dailyStatus}</Text> {/* הצגת מצב הסקירה */}
-            {/* </View> */}
+            {/* 💡 הוסיפי את זה כאן */}
+            {(() => {
+              const isCoffeeSurveyMissing =
+                !user?.coffeeConsumption ||
+                Object.values(user.coffeeConsumption).every((value) =>
+                  Array.isArray(value) ? value.length === 0 : !value
+                );
 
-            {/* {dailyStatus !== "מילאת את הסקירה היומית!" && (
-              <Button
-                title="התחילי מעקב יומי"
-                onPress={() => router.push("/create")}
-                color="#4CAF50"
-              />
-            )} */}
-            <View style={styles.section}>
-              <Text style={styles.subTitle}>📊 מצב יומי:</Text>
-              <Text style={styles.text}>
-                עוד לא התחלת לעקוב אחרי הקפה שלך היום.
-              </Text>
-            </View>
-            <Button
-              title="התחילי מעקב יומי"
-              onPress={() => router.push("/create")}
-              color="#4CAF50"
-            />
-            <Button
-              title="שלח לי תזכורת עכשיו 🚀"
-              onPress={sendImmediateNotification}
-              color="#2196F3"
-              style={{ marginTop: 10 }}
-            />
+              const isDailySurveyMissing =
+                dailyStatus !== "מילאת את הסקירה היומית!";
+
+              const hasAnyMessage =
+                isCoffeeSurveyMissing || isDailySurveyMissing;
+
+              return (
+                <View style={styles.section}>
+                  <Text style={styles.subTitle}>📊 הודעות עבורך:</Text>
+
+                  {hasAnyMessage ? (
+                    <>
+                      {isCoffeeSurveyMissing && (
+                        <>
+                          <Text style={styles.text}>
+                            לא השלמת עדיין את הסקירה הכללית על הרגלי הקפה שלך.
+                          </Text>
+                          <Button
+                            title="השלם סקירה כללית לקפה"
+                            onPress={() => router.push("/CoffeeDetails")}
+                            color="#f59e0b"
+                          />
+                        </>
+                      )}
+
+                      {isDailySurveyMissing && (
+                        <>
+                          <Text style={styles.text}>{dailyStatus}</Text>
+                          <Button
+                            title="התחילי מעקב יומי"
+                            onPress={() => router.push("/create")}
+                            color="#10b981"
+                          />
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <Text style={styles.text}>
+                      אין הודעות חדשות עבורך כרגע 🎉
+                    </Text>
+                  )}
+                </View>
+              );
+            })()}
+
             <TouchableOpacity onPress={handleLogout} style={styles.backLink}>
               <Text style={styles.linkText}>התנתקות מהחשבון</Text>
             </TouchableOpacity>
@@ -329,6 +353,15 @@ export default function HomeScreen() {
       </ScrollView>
     </View>
   );
+}
+
+{
+  /* <Button
+              title="שלח לי תזכורת עכשיו 🚀"
+              onPress={sendImmediateNotification}
+              color="#2196F3"
+              style={{ marginTop: 10 }}
+            /> */
 }
 
 const styles = StyleSheet.create({
@@ -347,13 +380,15 @@ const styles = StyleSheet.create({
   subTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#a3d9a5",
+    color: "#f59e0b",
     marginBottom: 5,
+    textAlign: "right",
   },
   text: {
     // color: "white",
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 35,
+    fontSize: 18,
   },
   section: { marginTop: 30, marginBottom: 20, width: "100%" },
   backLink: {

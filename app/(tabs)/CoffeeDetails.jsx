@@ -48,10 +48,7 @@ const CoffeeDetails = () => {
   useEffect(() => {
     const fetchCoffeeTypes = async () => {
       try { 
-        const response = await axios.post(
-          `${BASE_URL}/api/drinks`
-        );
-
+        const response = await axios.get(`${BASE_URL}/api/drinks`);
         setCoffeeTypesFromDb(response.data); // שומרת את כל המידע
       } catch (error) {
         console.error("❌ שגיאה בשליפת סוגי הקפה:", error.message);
@@ -484,7 +481,7 @@ const CoffeeDetails = () => {
         )}
         <Text>☕ באילו שעות ביום את/ה בדר״כ שותה קפה?</Text>
         <MultiSelect
-          style={[styles.dropdown, errors.selfDescription && styles.errorField]}
+          style={[styles.dropdown, errors.selfDescription && styles.errorField, { zIndex: 1000 }]}
           data={timesPerDay}
           labelField="label"
           valueField="value"
@@ -509,7 +506,7 @@ const CoffeeDetails = () => {
             textAlign: "right",
             textDirection: "rtl",
           }}
-          containerStyle={{ direction: "rtl" }}
+          containerStyle={{ zIndex: 1000 }}
         />
         {errors.consumptionTime && (
           <Text style={{ color: "red" }}>{errors.consumptionTime}</Text>
@@ -604,7 +601,7 @@ const CoffeeDetails = () => {
         )}
         <Text>☕ סוגי קפה מועדפים:</Text>
         <MultiSelect
-          style={[styles.dropdown, errors.coffeeType && styles.errorField]}
+          style={[styles.dropdown, errors.coffeeType && styles.errorField, { zIndex: 1000 }]}
           data={coffeeOptions}
           labelField="label"
           valueField="value"
@@ -637,7 +634,7 @@ const CoffeeDetails = () => {
             textAlign: "right",
             textDirection: "rtl",
           }}
-          containerStyle={{ direction: "rtl" }}
+          containerStyle={{ zIndex: 1000 }}
         />
         {errors.coffeeType && (
           <Text style={{ color: "red" }}>{errors.coffeeType}</Text>

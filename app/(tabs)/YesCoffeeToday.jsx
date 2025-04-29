@@ -6,7 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Button,
-  Alert
+  Alert,
 } from "react-native";
 import RadioGroup from "react-native-radio-buttons-group";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
@@ -15,8 +15,7 @@ import { useRouter } from "expo-router";
 import BASE_URL from "../../utils/apiConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function YesCoffeeToday({ onDataChange, generalData, 
- }) {
+export default function YesCoffeeToday({ onDataChange, generalData, entryId }) {
   console.log("entryId שקיבלתי:", entryId);
   const router = useRouter();
   const [cups, setCups] = useState("");
@@ -43,12 +42,11 @@ export default function YesCoffeeToday({ onDataChange, generalData,
   useEffect(() => {
     console.log("entryId שקיבלתי:", entryId);
   }, []);
-  
+
   useEffect(() => {
     const fetchCoffeeTypes = async () => {
-      try { 
+      try {
         const response = await axios.get(`${BASE_URL}/api/drinks`);
-
 
         setCoffeeTypesFromDb(response.data); // שומרת את כל המידע
       } catch (error) {
@@ -155,7 +153,7 @@ export default function YesCoffeeToday({ onDataChange, generalData,
   const handleContinue = async () => {
     console.log("▶️ לחצו על כפתור השליחה");
     const userId = await AsyncStorage.getItem("userId");
-  
+
     const finalData = {
       userId,
       date: new Date().toISOString().split("T")[0],
@@ -175,9 +173,9 @@ export default function YesCoffeeToday({ onDataChange, generalData,
         specialNeed,
         specialNeedReason,
         consideredReducing,
-        wantToReduceTomorrow
+        wantToReduceTomorrow,
       },
-      noCoffeeDetails: null
+      noCoffeeDetails: null,
     };
 
     try {
@@ -193,9 +191,8 @@ export default function YesCoffeeToday({ onDataChange, generalData,
       console.error("❌ שגיאה בשמירה:", err);
       Alert.alert("שגיאה", "משהו השתבש בעת השמירה.");
     }
-    
   };
-  
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>
@@ -211,13 +208,13 @@ export default function YesCoffeeToday({ onDataChange, generalData,
         placeholder="בחר כמות"
         value={cups}
         onChange={(item) => setCups(item.value)}
-        placeholderStyle={{ textAlign: "right" }}
-        selectedTextStyle={{ textAlign: "right" }}
+        placeholderStyle={styles.placeholderText}
+        selectedTextStyle={styles.selectedText}
       />
 
       <Text style={styles.label}>איזה סוג קפה שתית?</Text>
       <MultiSelect
-        style={[styles.dropdown]}
+         style={[styles.dropdown, { zIndex: 1000 }]}
         data={coffeeOptions}
         labelField="label"
         valueField="value"
@@ -244,31 +241,31 @@ export default function YesCoffeeToday({ onDataChange, generalData,
           textAlign: "right",
           textDirection: "rtl",
         }}
-        containerStyle={{ direction: "rtl" }}
+        containerStyle={{ zIndex: 1000 }}
       />
 
       <Text style={styles.label}>באילו שעות שתית קפה?</Text>
 
       <MultiSelect
-        style={styles.dropdown}
+        style={[styles.dropdown, { zIndex: 1000 }]}
         data={timesPerDay}
         labelField="label"
         valueField="value"
         placeholder="בחר זמן"
         value={consumptionTime}
         onChange={setConsumptionTime}
-        placeholderStyle={{ textAlign: "right" }}
-        selectedTextStyle={{ textAlign: "right", textDirection: "rtl" }}
+        placeholderStyle={styles.placeholderText}
+        selectedTextStyle={styles.selectedText}
         selectedStyle={{
           flexDirection: "row-reverse",
           justifyContent: "flex-end",
           alignItems: "center",
         }}
+        containerStyle={{ zIndex: 1000 }}
         itemTextStyle={{
           textAlign: "right",
           textDirection: "rtl",
         }}
-        containerStyle={{ direction: "rtl" }}
       />
 
       <Text style={styles.label}>מה הסיבה ששתית קפה היום?</Text>
@@ -318,7 +315,7 @@ export default function YesCoffeeToday({ onDataChange, generalData,
         layout="row"
       />
 
-      <Text style={styles.label}>האם תרצה לשתות קפה פחות מחר?</Text>
+      <Text style={styles.label}>האם תרצה לשתות קפה מחר?</Text>
       <RadioGroup
         radioButtons={yesNoMaybeOptions}
         onPress={setWantToReduceTomorrow}
@@ -350,6 +347,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     marginBottom: 4,
+    textAlign: "right",
   },
   input: {
     height: 45,

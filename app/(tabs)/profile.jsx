@@ -36,7 +36,6 @@ export default function Profile() {
         }
         const response = await axios.get(
           `${BASE_URL}/api/auth/get-user/${userId}`
-         
         );
         if (response.data.success) {
           const birthDate = new Date(response.data.user.birthDate);
@@ -158,41 +157,52 @@ export default function Profile() {
           <Text style={styles.label}>תאריך יום הולדת:</Text>
           {editMode ? (
             <View style={{ flexDirection: "row", gap: 10 }}>
+              {/* יום */}
               <Picker
-                selectedValue={day?.toString()} // ולא number
+                selectedValue={day?.toString()}
                 style={styles.picker}
                 onValueChange={(value) => {
-                  setDay(value);
-                  updateBirthDate(value, month, year);
+                  setDay(parseInt(value));
+                  updateBirthDate(parseInt(value), month, year);
                 }}
               >
-                {[...Array(31)].map((_, i) => (
-                  <Picker.Item key={i} label={`${i + 1}`} value={`${i + 1}`} />
-                ))}
+                {[...Array(31)].map((_, i) => {
+                  const val = i + 1;
+                  return (
+                    <Picker.Item key={val} label={`${val}`} value={`${val}`} />
+                  );
+                })}
               </Picker>
+
+              {/* חודש */}
               <Picker
                 selectedValue={month?.toString()}
                 style={styles.picker}
                 onValueChange={(value) => {
-                  setMonth(value);
-                  updateBirthDate(day, value, year);
+                  setMonth(parseInt(value));
+                  updateBirthDate(day, parseInt(value), year);
                 }}
               >
-                {[...Array(12)].map((_, i) => (
-                  <Picker.Item key={i} label={`${i + 1}`} value={`${i + 1}`} />
-                ))}
+                {[...Array(12)].map((_, i) => {
+                  const val = i + 1;
+                  return (
+                    <Picker.Item key={val} label={`${val}`} value={`${val}`} />
+                  );
+                })}
               </Picker>
+
+              {/* שנה */}
               <Picker
                 selectedValue={year?.toString()}
                 style={styles.picker}
                 onValueChange={(value) => {
-                  setYear(value);
-                  updateBirthDate(day, month, value);
+                  setYear(parseInt(value));
+                  updateBirthDate(day, month, parseInt(value));
                 }}
               >
                 {[...Array(100)].map((_, i) => {
                   const y = new Date().getFullYear() - i;
-                  return <Picker.Item key={i} label={`${y}`} value={`${y}`} />;
+                  return <Picker.Item key={y} label={`${y}`} value={`${y}`} />;
                 })}
               </Picker>
             </View>
@@ -238,19 +248,20 @@ const InfoRow = ({ label, value, field, editMode, onChange }) => {
           <Picker
             selectedValue={value?.toString()} // להמיר תמיד למחרוזת
             style={styles.picker}
-            onValueChange={(val) => onChange(field, val)}
+            onValueChange={(val) => onChange(field, parseInt(val))}
           >
             {field === "weight"
               ? [...Array(121)].map((_, i) => {
                   const val = 30 + i;
                   return (
-                    <Picker.Item key={val} label={`${val} ק"ג`} value={val} />
+                    <Picker.Item key={val} label={`${val} ק"ג`} value={`${val}`} />
+
                   );
                 })
               : [...Array(121)].map((_, i) => {
                   const val = 100 + i;
                   return (
-                    <Picker.Item key={val} label={`${val} ס"מ`} value={val} />
+                    <Picker.Item key={val} label={`${val} ס"מ`} value={`${val}`} />
                   );
                 })}
           </Picker>

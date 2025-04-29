@@ -42,7 +42,7 @@ export default function PasswordRecovery() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🔐 שחזור סיסמה</Text>
+      <Text style={styles.title}>🔐 אימות משתמש</Text>
 
       <TextInput
         style={styles.input}

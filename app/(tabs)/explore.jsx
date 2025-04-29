@@ -1,16 +1,47 @@
 // ExploreScreen.jsx
 import React from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, Text, StyleSheet } from "react-native";
+import RadioGroup from "react-native-radio-buttons-group";
 
 export default function ExploreScreen() {
+  const [insights, setInsights] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [relevanceAnswer, setRelevanceAnswer] = useState(null);
+  const [appliedAnswer, setAppliedAnswer] = useState(null);
+  
+  const yesNoMaybeOptions = [
+    { id: "yes", label: "כן", value: "yes" },
+    { id: "no", label: "לא", value: "no" },
+    { id: "don't know", label: "לא יודע/ת", value: "don't know" },
+  ];
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>🔍 גלה עוד על קפה</Text>
-      <Text style={styles.text}>☕ שתיית קפה יכולה להמריץ אותך, אבל עודף ממנו עלול לגרום לעייפות מוגברת.</Text>
-      <Text style={styles.text}>💧 שתה מים בין כוסות קפה כדי לשמור על איזון נוזלים.</Text>
-      <Text style={styles.text}>🕒 נסה להימנע מקפה אחרי השעה 16:00 כדי לא להפריע לשינה.</Text>
-      <Text style={styles.text}>📚 מחקרים מראים שקפאין משפיע שונה על כל אדם – עקוב אחרי התחושות שלך.</Text>
-      <Text style={styles.text}>🌿 נסה להפחית בהדרגה – יום בלי קפה יכול להיות הזדמנות להקשיב לגוף.</Text>
+      <Text style={styles.title}>📊 תובנות:</Text>
+      {insights.map((text, idx) => (
+        <Text key={idx}>• {text}</Text>
+      ))}
+
+      <Text style={styles.title}>🎯 המלצות:</Text>
+      {recommendations.map((text, idx) => (
+        <Text key={idx}>• {text}</Text>
+      ))}
+      <Text style={styles.label}>האם ההמלצה רלוונטית עבורך?</Text>
+      <RadioGroup
+        radioButtons={yesNoMaybeOptions}
+        onPress={setRelevanceAnswer}
+        selectedId={relevanceAnswer}
+        layout="row"
+      />
+      <Text style={styles.label}>האם יישמת את ההמלצה?</Text>
+      <RadioGroup
+        radioButtons={yesNoMaybeOptions}
+        onPress={setAppliedAnswer}
+        selectedId={appliedAnswer}
+        layout="row"
+      />
+      <Text style={styles.text}>היסטוריית תובנות & המלצות</Text>
     </ScrollView>
   );
 }
@@ -19,18 +50,25 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     // backgroundColor: "#fff",
-    minHeight: "100%"
+    minHeight: "100%",
   },
   title: {
     fontSize: 26,
     fontWeight: "bold",
     marginBottom: 15,
     // color: "#ffc8dd",
-    textAlign: "center"
+    textAlign: "center",
   },
   text: {
     // color: "white",
     marginBottom: 10,
-    fontSize: 16
-  }
+    fontSize: 20,
+    textAlign: "center"
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 4,
+    textAlign: "right"
+  },
 });

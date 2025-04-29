@@ -453,6 +453,7 @@ const HealthDetailsScreen = () => {
           title="המשך"
           onPress={handleContinue}
           color="#4CAF50"
+          
           // disabled={!isFormValid()}
         />
       </View>
@@ -461,7 +462,7 @@ const HealthDetailsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  scrollContainer: { flexGrow: 1, paddingBottom: 20 },
+  scrollContainer: { flexGrow: 1, paddingBottom: 20 ,   backgroundColor: "#fff",},
   container: { flex: 1, justifyContent: "center", padding: 20 },
   title: {
     fontSize: 28,
@@ -520,6 +521,13 @@ const styles = StyleSheet.create({
     textAlign: "right",
     fontSize: 16,
     color: "gray",
+  },
+  button: {
+    backgroundColor: "#007BFF",
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: "center",
   },
 });
 

@@ -14,8 +14,6 @@ export default function CoffeeScreen() {
   const [caffeineMax, setCaffeineMax] = useState(null);
   const [finalCaffeine, setCaffeine] = useState(null);
 
-  const [insights, setInsights] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
   const [aiMessage, setAiMessage] = useState("");
 
   useEffect(() => {
@@ -116,17 +114,6 @@ export default function CoffeeScreen() {
         </Text>
       </TouchableOpacity>
 
-      <Text style={styles.title}>🤖 תובנות AI: {aiMessage}</Text>
-
-      <Text style={styles.title}>📊 תובנות:</Text>
-      {insights.map((text, idx) => (
-        <Text key={idx}>• {text}</Text>
-      ))}
-
-      <Text style={styles.title}>🎯 המלצות:</Text>
-      {recommendations.map((text, idx) => (
-        <Text key={idx}>• {text}</Text>
-      ))}
     </View>
   );
 }
