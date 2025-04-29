@@ -1,4 +1,6 @@
-const BASE_URL = "http://10.0.0.15:5000";
-// http://172.20.10.10:5000
+const BASE_URL = "http://192.168.1.24:5000";
+
+// "http://10.0.0.15:5000" אצל יצחק
+// http://172.20.10.10:5000 מהטלפון הנייד שלי
  // http://localhost:5000
 export default BASE_URL;

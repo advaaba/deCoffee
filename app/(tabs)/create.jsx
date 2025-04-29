@@ -16,15 +16,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import MoodSelector from "./MoodSelector";
-import BASE_URL from "../../utils/apiConfig";
 
 export default function Create() {
   const [sleepFromHour, setSleepFromHour] = useState(null);
   const [sleepToHour, setSleepToHour] = useState(null);
+  const router = useRouter();
 
   const [mood, setMood] = useState(null);
-  const [focusLevel, setFocusLevel] = useState(null);
-  const [tirednessLevel, setTirednessLevel] = useState(null);
+  const [focusLevel, setFocusLevel] = useState("");
+  const [tirednessLevel, setTirednessLevel] = useState("");
   const [isDrinking, setIsDrinking] = useState(null);
   const [yesCoffeeData, setYesCoffeeData] = useState(null);
   const [noCoffeeData, setNoCoffeeData] = useState(null);
@@ -49,11 +49,11 @@ export default function Create() {
   );
 
   const ratingOptions = [
-    { id: "great", label: "מצוין" },
-    { id: "good", label: "טוב" },
-    { id: "okay", label: "בסדר" },
-    { id: "bad", label: "רע" },
-    { id: "terrible", label: "נורא" },
+    { id: "great", label: "מצוין", value: "great" },
+    { id: "good", label: "טוב", value: "good" },
+    { id: "okay", label: "בסדר", value: "okay" },
+    { id: "bad", label: "רע", value: "bad" },
+    { id: "terrible", label: "נורא", value: "terrible" },
   ];
 
   const hoursOptions = Array.from({ length: 24 * 2 }, (_, i) => {
@@ -93,43 +93,45 @@ export default function Create() {
     noCoffeeValid,
   ]);
 
-  const handleSubmit = async () => {
-    const userId = await AsyncStorage.getItem("userId");
-    const finalData = {
-      userId,
-      date: new Date().toISOString().split("T")[0],
-      sleepHours: sleepDurationAverage,
-      mood,
-      focusLevel,
-      tirednessLevel,
-      drankCoffee: isDrinking === "yes",
-      coffeeDetails: yesCoffeeData,
-      noCoffeeDetails: noCoffeeData,
-    };
+  // const handleSubmit = async () => {
+  //   const userId = await AsyncStorage.getItem("userId");
+  //   const finalData = {
+  //     userId,
+  //     date: new Date().toISOString().split("T")[0],
+  //     sleepHours: sleepDurationAverage,
+  //     mood,
+  //     focusLevel,
+  //     tirednessLevel,
+  //     drankCoffee: isDrinking === "yes",
+  //     coffeeDetails: yesCoffeeData,
+  //     noCoffeeDetails: noCoffeeData,
+  //   };
 
-    // 💥 בדיקה לפני השליחה
-    if (!userId || !isFormValid) {
-      console.log("אנא מלא את כל השדות לפני השליחה", finalData);
-      Alert.alert("שגיאה", "אנא מלאי את כל השדות לפני השליחה.");
-      return;
-    }
-    
+  //   // 💥 בדיקה לפני השליחה
+  //   if (!userId || !isFormValid) {
+  //     console.log("אנא מלא את כל השדות לפני השליחה", finalData);
+  //     Alert.alert("שגיאה", "אנא מלאי את כל השדות לפני השליחה.");
+  //     return;
+  //   }
 
-    try {
-      const response = await axios.post(`${BASE_URL}/api/dailyData`,finalData);
-      console.log("✅ שליחה הצליחה:", response.data);
-      Alert.alert("הצלחה", "הנתונים נשמרו בהצלחה!");
-    } catch (err) {
-      console.error("❌ שגיאה בשליחה:", err);
-      Alert.alert("שגיאה", "משהו השתבש בשמירה.");
-    }
-  };
+  //   try {
+  //     const response = await axios.post(`${BASE_URL}/api/dailyData`, finalData);
+  //     console.log("✅ שליחה הצליחה:", response.data);
+  //     Alert.alert("הצלחה", "הנתונים נשמרו בהצלחה!");
+  //   } catch (err) {
+  //     console.error("❌ שגיאה בשליחה:", err);
+  //     Alert.alert("שגיאה", "משהו השתבש בשמירה.");
+  //   }
+  // };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         <Text style={styles.title}>סקירת הקפה היומי</Text>
-        <Text>כמה שעות ישנת היום?</Text>
+        <Text style={styles.label}>
+          עלייך למלא את כל השדות כדי לשלוח סקירה יומית מלאה
+        </Text>
+        <Text style={styles.label}>כמה שעות ישנת היום?</Text>
         <View style={styles.sleepTimeRow}>
           <Dropdown
             style={[styles.dropdown, styles.sleepDropdown]}
@@ -158,28 +160,15 @@ export default function Create() {
             selectedTextStyle={styles.selectedText}
           />
         </View>
-        {/* <Text style={styles.label}>מה מצב הרוח שלך היום?</Text>
-        <Dropdown
-          style={styles.dropdown}
-          data={ratingOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="בחרי מצב רוח"
-          value={mood}
-          onChange={(item) => setMood(item.value)}
-          placeholderStyle={styles.placeholderText}
-          selectedTextStyle={styles.selectedText}
-        /> */}
-
         <MoodSelector onMoodSelect={(selectedMood) => setMood(selectedMood)} />
         <Text style={styles.label}>מה רמת הריכוז שלך היום?</Text>
         <Dropdown
-          style={styles.dropdown}
+          style={[styles.dropdown]}
           data={ratingOptions}
           labelField="label"
           valueField="value"
           placeholder="בחרי רמת ריכוז"
-          value={focusLevel}
+          value={focusLevel || undefined}
           onChange={(item) => setFocusLevel(item.value)}
           placeholderStyle={styles.placeholderText}
           selectedTextStyle={styles.selectedText}
@@ -187,50 +176,75 @@ export default function Create() {
 
         <Text style={styles.label}>מה רמת העייפות שלך היום?</Text>
         <Dropdown
-          style={styles.dropdown}
+          style={[styles.dropdown]}
           data={ratingOptions}
           labelField="label"
           valueField="value"
           placeholder="בחרי רמת עייפות"
-          value={tirednessLevel}
+          value={tirednessLevel || undefined}
           onChange={(item) => setTirednessLevel(item.value)}
           placeholderStyle={styles.placeholderText}
           selectedTextStyle={styles.selectedText}
         />
-        <Text>האם שתית קפה היום?</Text>
+        <Text style={styles.label}>האם שתית קפה היום?</Text>
         <RadioGroup
           radioButtons={radioButtons}
           onPress={(selectedId) => {
+            const allFieldsFilled =
+              sleepFromHour &&
+              sleepToHour &&
+              sleepDurationAverage !== 0 &&
+              mood &&
+              focusLevel &&
+              tirednessLevel;
+
+            if (!allFieldsFilled) {
+              Alert.alert(
+                "שגיאה",
+                "אנא מלאי את כל השדות לפני בחירה אם שתית קפה."
+              );
+              return;
+            }
+
             setIsDrinking(selectedId);
           }}
           selectedId={isDrinking}
           layout="row"
         />
+
         {isDrinking === "yes" && (
           <YesCoffeeToday
+            generalData={{
+              sleepFromHour,
+              sleepToHour,
+              sleepDurationAverage,
+              mood,
+              focusLevel,
+              tirednessLevel,
+            }}
             onDataChange={({ data, isValid }) => {
               setYesCoffeeData(data);
               setYesCoffeeValid(isValid);
             }}
           />
         )}
+
         {isDrinking === "no" && (
           <NoCoffeeToday
+            generalData={{
+              sleepFromHour,
+              sleepToHour,
+              sleepDurationAverage,
+              mood,
+              focusLevel,
+              tirednessLevel,
+            }}
             onDataChange={({ data, isValid }) => {
               setNoCoffeeData(data);
               setNoCoffeeValid(isValid);
             }}
           />
         )}
-
-        <View style={{ opacity: isFormValid ? 1 : 0.5 }}>
-          <Button
-            title="שמור הכל"
-            color="#2196F3"
-            onPress={handleSubmit}
-            disabled={!isFormValid}
-          />
-        </View>
       </View>
     </ScrollView>
   );
@@ -246,9 +260,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "stretch",
   },
-  Text: {
-    textAlign: "right"
-  },
   title: {
     fontSize: 24,
     fontWeight: "600",
@@ -259,6 +270,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 12,
     marginBottom: 4,
+    textAlign: "right",
+    writingDirection: "rtl",
+  },
+  text: {
+    fontSize: 14,
+    textAlign: "right",
+    writingDirection: "rtl",
   },
   button: {
     marginTop: 24,

@@ -56,6 +56,32 @@ export default function HomeScreen() {
       console.error("❌ שגיאה בבדיקת הסקירה היומית:", error);
     }
   };
+  const handleMissedNotification = async (timeLabel, hour, minute) => {
+    const today = new Date().toISOString().split("T")[0];
+    const key = `notificationSent_${timeLabel}_${today}`;
+
+    const alreadySent = await AsyncStorage.getItem(key);
+    if (alreadySent) {
+      console.log(`🔁 תזכורת עבור ${timeLabel} כבר נשלחה היום`);
+      return;
+    }
+
+    const now = new Date();
+    const scheduledTime = new Date();
+    scheduledTime.setHours(hour, minute, 0, 0);
+
+    if (now > scheduledTime) {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "☕ זמן קפה שהוחמץ!",
+          body: `שכחת את הקפה של ${timeLabel}? עדיין יש זמן לקחת רגע לעצמך.`,
+        },
+        trigger: null, // שליחה מיידית
+      });
+      console.log(`📨 תזכורת ${timeLabel} נשלחה באיחור`);
+      await AsyncStorage.setItem(key, "true");
+    }
+  };
 
   const scheduleNotificationsForConsumptionTimes = async (consumptionTimes) => {
     if (!consumptionTimes || consumptionTimes.length === 0) {
@@ -72,27 +98,26 @@ export default function HomeScreen() {
 
     for (const time of consumptionTimes) {
       const { hour, minute } = notificationTimes[time];
-
-      // מחשב את השעה המדויקת הבאה
+    
       const now = new Date();
       let triggerDate = new Date();
       triggerDate.setHours(hour, minute, 0, 0);
-
-      // אם השעה כבר חלפה היום, תקבע למחר
+    
       if (triggerDate <= now) {
-        triggerDate.setDate(triggerDate.getDate() + 1);
+        // אם עבר הזמן – שלח תזכורת באיחור פעם אחת
+        await handleMissedNotification(time, hour, minute);
+      } else {
+        // אם עוד לא הגיע – קבע רגיל
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "☕ זמן קפה הגיע!",
+            body: `זה הזמן המושלם להפסקת קפה (${time}) 🌟`,
+          },
+          trigger: triggerDate,
+        });
+        console.log(`✅ תזכורת עתידית נקבעה ל־${time}: ${triggerDate}`);
       }
-
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "☕ זמן קפה הגיע!",
-          body: `זה הזמן המושלם להפסקת קפה (${time}) 🌟`,
-        },
-        trigger: triggerDate,
-      });
-
-      console.log(`✅ תזכורת לתזמון ${time} נקבעה ל: ${triggerDate}`);
-    }
+    }    
   };
 
   const sendImmediateNotification = async () => {
@@ -265,7 +290,7 @@ export default function HomeScreen() {
                 onPress={() => router.push("/create")}
                 color="#4CAF50"
               />
-            )} */} 
+            )} */}
             <View style={styles.section}>
               <Text style={styles.subTitle}>📊 מצב יומי:</Text>
               <Text style={styles.text}>

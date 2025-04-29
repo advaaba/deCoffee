@@ -6,13 +6,16 @@ import {
   ScrollView,
   StyleSheet,
   Button,
+  Alert
 } from "react-native";
 import RadioGroup from "react-native-radio-buttons-group";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 import axios from "axios";
-import { useRouter } from "expo-router";
+import { useRouter,   } from "expo-router";
+import BASE_URL from "../../utils/apiConfig";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function YesCoffeeToday({ onDataChange }) {
+export default function YesCoffeeToday({ onDataChange, generalData }) {
   const router = useRouter();
   const [cups, setCups] = useState("");
   const [coffeeType, setCoffeeType] = useState("");
@@ -33,6 +36,7 @@ export default function YesCoffeeToday({ onDataChange }) {
   });
 
   const [formData, setFormData] = useState({});
+  console.log("🔵 קיבלתי את הנתונים מ-Create:", generalData);
 
   useEffect(() => {
     const fetchCoffeeTypes = async () => {
@@ -141,23 +145,42 @@ export default function YesCoffeeToday({ onDataChange }) {
     { label: "לילה", value: "night" },
   ];
 
-  const handleContinue = () => {
-    const data = {
-      cups,
-      coffeeType: coffeeData.coffeeType,
-      consumptionTime,
-      reason,
-      feltEffect,
-      specialNeed,
-      consideredReducing,
-      wantToReduceTomorrow,
-      specialNeedReason,
+  const handleContinue = async () => {
+    const userId = await AsyncStorage.getItem("userId");
+  
+    const finalData = {
+      userId,
+      date: new Date().toISOString().split("T")[0],
+      sleepFromHour: generalData.sleepFromHour,
+      sleepToHour: generalData.sleepToHour,
+      sleepHours: generalData.sleepDurationAverage,
+      mood: generalData.mood,
+      focusLevel: generalData.focusLevel,
+      tirednessLevel: generalData.tirednessLevel,
+      drankCoffee: true,
+      coffeeDetails: {
+        cups,
+        coffeeType: coffeeData.coffeeType,
+        consumptionTime,
+        reason,
+        feltEffect,
+        specialNeed,
+        specialNeedReason,
+        consideredReducing,
+        wantToReduceTomorrow
+      },
+      noCoffeeDetails: null
     };
-
-    console.log(data); // לראות שהנתונים תקינים
-    router.push({ pathname: "/create", params: data });
+  
+    try {
+      await axios.post(`${BASE_URL}/api/dailyData`, finalData);
+      Alert.alert("✅ הצלחה", "הנתונים נשמרו בהצלחה!");
+    } catch (error) {
+      console.error("❌ שגיאה בשליחה:", error.message);
+      Alert.alert("שגיאה", "השליחה נכשלה. נסי שוב.");
+    }
   };
-
+  
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>

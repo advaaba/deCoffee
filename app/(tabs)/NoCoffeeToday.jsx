@@ -6,12 +6,17 @@ import {
   TextInput,
   ScrollView,
   Button,
+  Alert
 } from "react-native";
 import RadioGroup from "react-native-radio-buttons-group";
 import { useRouter } from "expo-router";
+import BASE_URL from "../../utils/apiConfig";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 
-export default function NoCoffeeToday({ onDataChange }) {
+export default function NoCoffeeToday({ onDataChange, generalData }) {
   const router = useRouter();
+
   const [feltWithoutCoffee, setFeltWithoutCoffee] = useState("");
   const [consideredDrinking, setConsideredDrinking] = useState(null);
   const [willDrinkLater, setWillDrinkLater] = useState(null);
@@ -22,6 +27,8 @@ export default function NoCoffeeToday({ onDataChange }) {
   const [consideredDrinkingReason, setConsideredDrinkingReason] = useState("");
   const [willDrinkLaterReason, setWillDrinkLaterReason] = useState("");
   const [formData, setFormData] = useState({});
+  
+  console.log("🔵 קיבלתי את הנתונים מ-Create:", generalData);
 
   useEffect(() => {
     const data = {
@@ -96,22 +103,43 @@ export default function NoCoffeeToday({ onDataChange }) {
     { id: "don't know", label: "לא יודע/ת", value: "don't know" },
   ];
 
-  const handleContinue = () => {
-    const data = {
-      feltWithoutCoffee,
-      consideredDrinking,
-      consideredDrinkingReason,
-      willDrinkLater,
-      willDrinkLaterReason,
-      reasonNotDrinking,
-      consciousDecision,
-      willDrinkTomorrow,
-      wantToContinueNoCoffee,
+  const handleContinue = async () => {
+    const userId = await AsyncStorage.getItem("userId");
+  
+    const finalData = {
+      userId,
+      date: new Date().toISOString().split("T")[0],
+      sleepFromHour: generalData.sleepFromHour,
+      sleepToHour: generalData.sleepToHour,
+      sleepHours: generalData.sleepDurationAverage,
+      mood: generalData.mood,
+      focusLevel: generalData.focusLevel,
+      tirednessLevel: generalData.tirednessLevel,
+      drankCoffee: false,
+      coffeeDetails: null,
+      noCoffeeDetails: {
+        feltWithoutCoffee,
+        consideredDrinking,
+        consideredDrinkingReason,
+        willDrinkLater,
+        willDrinkLaterReason,
+        reasonNotDrinking,
+        consciousDecision,
+        willDrinkTomorrow,
+        wantToContinueNoCoffee
+      }
     };
-
-    console.log(data); // לראות שהכל נכון
-    router.push({ pathname: "/create", params: data });
+  
+    try {
+      await axios.post(`${BASE_URL}/api/dailyData`, finalData);
+      Alert.alert("✅ הצלחה", "הנתונים נשמרו בהצלחה!");
+    } catch (error) {
+      console.error("❌ שגיאה בשליחה:", error.message);
+      Alert.alert("שגיאה", "השליחה נכשלה. נסי שוב.");
+    }
   };
+  
+  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
