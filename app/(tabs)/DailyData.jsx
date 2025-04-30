@@ -29,21 +29,21 @@ export default function DailyData({ dailyData }) {
     <View style={styles.container}>
       <Text style={styles.title}>📋 סקירה יומית</Text>
 
-      <Item label="🛏️ שעות שינה" value={dailyData.sleepHours} />
-      <Item label="🧠 מצב רוח" value={translateRating(dailyData.mood)} />
+      <Item label=" שעות שינה" value={dailyData.sleepHours} />
+      <Item label=" מצב רוח" value={translateRating(dailyData.mood)} />
       <Item
-        label="🎯 רמת ריכוז"
+        label=" רמת ריכוז"
         value={translateRating(dailyData.focusLevel)}
       />
       <Item
-        label="😴 רמת עייפות"
+        label=" רמת עייפות"
         value={translateRating(dailyData.tirednessLevel)}
       />
-      <Item label="☕ שתה קפה" value={dailyData.drankCoffee ? "כן" : "לא"} />
+      <Item label=" שתה קפה" value={dailyData.drankCoffee ? "כן" : "לא"} />
 
       {dailyData.drankCoffee && dailyData.coffeeDetails ? (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🟢 פרטי שתיית קפה:</Text>
+          <Text style={styles.sectionTitle}> פרטי שתיית קפה:</Text>
           <Item label="מספר כוסות" value={dailyData.coffeeDetails.cups} />
           <Item
             label="סוגי קפה"

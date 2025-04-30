@@ -35,34 +35,6 @@ export default function CoffeeScreen() {
           userData.averageCaffeinePerDay ??
           coffeeData?.averageCaffeinePerDay ??
           0;
-        // console.log("🧠 נשלח ל־AI:", {
-        //   age: userData.age,
-        //   averageCaffeinePerDay, // ✅ זה המשתנה שתיקנת למעלה
-        //   sleepDurationAverage: coffeeData?.sleepDurationAverage || 0,
-        //   workDurationAverage: coffeeData?.workDurationAverage || 0,
-        //   caffeineRecommendationMin: userData.caffeineRecommendationMin || 0,
-        //   caffeineRecommendationMax: userData.caffeineRecommendationMax || 0,
-        //   isTryingToReduce: coffeeData?.isTryingToReduce === "yes",
-        //   isMotivation: userData.isMotivation ?? false,
-        //   selfDescription: coffeeData?.selfDescription || "",
-        //   activityLevel: userData.activityLevel || "None",
-        // });
-
-        // const aiText = await analyzeInitialPattern({
-        //   age: userData.age || 0,
-        //   averageCaffeinePerDay,
-        //   sleepDurationAverage:
-        //     userData.coffeeConsumption?.sleepDurationAverage || 0,
-        //   workDurationAverage:
-        //     userData.coffeeConsumption?.workDurationAverage || 0,
-        //   caffeineRecommendationMin: userData.caffeineRecommendationMin || 0,
-        //   caffeineRecommendationMax: userData.caffeineRecommendationMax || 0,
-        //   isTryingToReduce:
-        //     userData.coffeeConsumption?.isTryingToReduce === "yes",
-        //   isMotivation: userData.isMotivation ?? false,
-        //   selfDescription: userData.coffeeConsumption?.selfDescription || "",
-        //   activityLevel: userData.activityLevel || "None",
-        // });
 
         // setAiMessage(aiText);
         setCaffeineMin(caffeineMin);
@@ -78,10 +50,7 @@ export default function CoffeeScreen() {
         if (hasData) {
           setIsFilled(true);
         }
-        // const aiResponse = await axios.post(`${BASE_URL}/api/auth/get-insights/${userId}`);
-        // setInsights(aiResponse.data.insights);
-        // setRecommendations(aiResponse.data.recommendations);
-
+      
         // console.log("🔥 AI Response:", aiResponse.data);
       } catch (error) {
         console.error("שגיאה בשליפת נתוני coffeeConsumption:", error);
@@ -95,14 +64,15 @@ export default function CoffeeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>מסך נתוני הקפה</Text>
-      {caffeineMin !== null && caffeineMax !== null ? (
+
+      {/* {caffeineMin !== null && caffeineMax !== null ? (
         <Text>
           כמות הקפאין המומלצת עבורך: {caffeineMin} - {caffeineMax} מ"ג ביום (
           {finalCaffeine} סה\"כ)
         </Text>
       ) : (
         <Text>טוען נתונים...</Text>
-      )}
+      )} */}
 
       <TouchableOpacity
         style={[styles.button, isFilled && styles.disabledButton]}
