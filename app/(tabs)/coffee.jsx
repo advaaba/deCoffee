@@ -1,9 +1,11 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 // import { analyzeInitialPattern } from "../../analysis/initialBehaviorModel";
+import GeneralData from "./GeneralData";
+import CoffeeDetails from "./CoffeeDetails";
 import BASE_URL from "../../utils/apiConfig";
 
 export default function CoffeeScreen() {
@@ -13,8 +15,7 @@ export default function CoffeeScreen() {
   const [caffeineMin, setCaffeineMin] = useState(null);
   const [caffeineMax, setCaffeineMax] = useState(null);
   const [finalCaffeine, setCaffeine] = useState(null);
-
-  const [aiMessage, setAiMessage] = useState("");
+  const [surveyData, setSurveyData] = useState(null);
 
   useEffect(() => {
     const fetchSurveyData = async () => {
@@ -48,9 +49,10 @@ export default function CoffeeScreen() {
           );
 
         if (hasData) {
+          setSurveyData(coffeeData);
           setIsFilled(true);
         }
-      
+
         // console.log("🔥 AI Response:", aiResponse.data);
       } catch (error) {
         console.error("שגיאה בשליפת נתוני coffeeConsumption:", error);
@@ -62,42 +64,32 @@ export default function CoffeeScreen() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>מסך נתוני הקפה</Text>
-
-      {/* {caffeineMin !== null && caffeineMax !== null ? (
-        <Text>
-          כמות הקפאין המומלצת עבורך: {caffeineMin} - {caffeineMax} מ"ג ביום (
-          {finalCaffeine} סה\"כ)
-        </Text>
-      ) : (
-        <Text>טוען נתונים...</Text>
-      )} */}
-
-      <TouchableOpacity
-        style={[styles.button, isFilled && styles.disabledButton]}
-        onPress={() => router.push("/CoffeeDetails")}
-        disabled={isFilled}
-      >
-        <Text style={styles.buttonText}>
-          {isFilled ? "כבר מילאת את הסקירה" : "שאלון סקירה כללית לקפה"}
-        </Text>
-      </TouchableOpacity>
-
-    </View>
+  
+      <Text style={styles.description}>
+        כאן תוכלי למלא סקירה כללית על הרגלי צריכת הקפה שלך ולנתח את הדפוסים.
+      </Text>
+  
+      <View style={styles.section}>
+        {isFilled ? <GeneralData /> : <CoffeeDetails />}
+      </View>
+    </ScrollView>
   );
+  
+  
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: "center",
     padding: 20,
+    alignItems: "center",
   },
   title: {
-    fontSize: 22,
-    // fontWeight: "bold",
-    marginBottom: 30,
+    fontSize: 24,
+    fontWeight: "600",
+    marginBottom: 20,
+    textAlign: "center",
   },
   button: {
     backgroundColor: "#4CAF50",
@@ -111,5 +103,9 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 18,
+  },
+  section: {
+    marginTop: 20, 
+    width: "100%", 
   },
 });

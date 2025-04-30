@@ -15,7 +15,6 @@ export default function ExploreScreen() {
 
   useEffect(() => {
     const getAnalysis = async () => {
-     
       try {
         const userId = await AsyncStorage.getItem("userId");
         if (!userId) return;
@@ -27,41 +26,45 @@ export default function ExploreScreen() {
         const storedData = await AsyncStorage.getItem("userData");
         if (!storedData) return;
         const userData = JSON.parse(storedData);
-  
+
         const averageCaffeinePerDay =
           userData.coffeeConsumption?.averageCaffeinePerDay || 0;
-  
-          const inputToModel = {
-            age: userData.age || 0,
-            averageCaffeinePerDay,
-            sleepDurationAverage: userData.coffeeConsumption?.sleepDurationAverage || 0,
-            workDurationAverage: userData.coffeeConsumption?.workDurationAverage || 0,
-            workStartHour: userData.coffeeConsumption?.workStartHour || 0,
-            workEndHour: userData.coffeeConsumption?.workEndHour || 0,
-            caffeineRecommendationMin: userData.caffeineRecommendationMin || 0,
-            caffeineRecommendationMax: userData.caffeineRecommendationMax || 0,
-            isTryingToReduce: userData.coffeeConsumption?.isTryingToReduce === "yes",
-            isMotivation: userData.isMotivation ?? false,
-            selfDescription: userData.coffeeConsumption?.selfDescription || "",
-            activityLevel: userData.activityLevel || "None",
-            consumptionTime: userData.coffeeConsumption?.consumptionTime || [],
-            effects: userData.coffeeConsumption?.effects || "none",
-            isWorking: userData.coffeeConsumption?.isWorking || "no",
-          };
-          
+
+        const inputToModel = {
+          age: userData.age || 0,
+          averageCaffeinePerDay,
+          sleepDurationAverage:
+            userData.coffeeConsumption?.sleepDurationAverage || 0,
+          workDurationAverage:
+            userData.coffeeConsumption?.workDurationAverage || 0,
+          workStartHour: userData.coffeeConsumption?.workStartHour || 0,
+          workEndHour: userData.coffeeConsumption?.workEndHour || 0,
+          caffeineRecommendationMin: userData.caffeineRecommendationMin || 0,
+          caffeineRecommendationMax: userData.caffeineRecommendationMax || 0,
+          isTryingToReduce:
+            userData.coffeeConsumption?.isTryingToReduce === "yes",
+          isMotivation: userData.isMotivation ?? false,
+          selfDescription: userData.coffeeConsumption?.selfDescription || "",
+          activityLevel: userData.activityLevel || "None",
+          consumptionTime: userData.coffeeConsumption?.consumptionTime || [],
+          effects: userData.coffeeConsumption?.effects || "none",
+          isWorking: userData.coffeeConsumption?.isWorking || "no",
+        };
+
         console.log("📤 שולחת בקשה לשרת עם:", inputToModel);
 
         // const res = await axios.post(
         //   `${BASE_URL}/api/prediction/analyze`,
         //   inputToModel
         // );
-        
-          const res = await axios.post(`${BASE_URL}/api/auth/get-insights/${userId}`);
+
+        const res = await axios.post(
+          `${BASE_URL}/api/auth/get-insights/${userId}`
+        );
         // setInsights(aiResponse.data.insights);
         // setRecommendations(aiResponse.data.recommendations);
         console.log("📥 התקבלה תגובה מהשרת:", res.data);
 
-  
         const analysisResult = res.data;
         console.log("🎯 תוצאה מהשרת:", analysisResult);
         setInsights([analysisResult.insight]);
@@ -70,7 +73,7 @@ export default function ExploreScreen() {
         console.error("❌ שגיאה בקבלת ניתוח מהשרת:", error.message);
       }
     };
-  
+
     getAnalysis();
   }, []);
 
@@ -105,6 +108,16 @@ export default function ExploreScreen() {
         selectedId={appliedAnswer}
         layout="row"
       />
+
+      {/* {caffeineMin !== null && caffeineMax !== null ? (
+              <Text>
+                כמות הקפאין המומלצת עבורך: {caffeineMin} - {caffeineMax} מ"ג ביום (
+                {finalCaffeine} סה\"כ)
+              </Text>
+            ) : (
+              <Text>טוען נתונים...</Text>
+            )} */}
+
       <Text style={styles.text}>היסטוריית תובנות & המלצות</Text>
     </ScrollView>
   );
